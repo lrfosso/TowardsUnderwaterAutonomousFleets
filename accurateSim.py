@@ -84,15 +84,34 @@ model.set_rhs('psi', r)
 
 M_rb = np.array([[m, 0, 0, 0, m*z_g, 0],
 		 [0, m, 0, -m*z_g, 0 ,0],
-		 [0, 0, m, 0, 0 ,0],
+		 [0, 0, m, 0, 0, 0],
 		 [0, -m*z_g, 0, I_x, 0 ,0],
-		 [0, 0, 0, I_x, 0 ,0],
-		 [0, 0, 0, 0, I_y ,0],
+		 [m*z_g, 0, 0, I_y, 0 ,0],
 		 [0, 0, 0, 0, 0, I_z]])
 
 
 M_a = -np.diag(X_udot,Y_vdot,Z_wdot,K_pdot,M_pdot,N_rdot)
 M = M_rb+M_a
+
+C_a = np.array([[0, 0, 0, 0, Z_wdot*w, 0],
+		 [0, 0, 0, -Z_wdot*w, 0 ,-X_udot*u],
+		 [0, 0, 0, -Y_vdot*v, X_udot*u ,0],
+		 [0, -Z_wdot*w, Y_vdot*v,0, -N_rdot*r, M_qdot*q],
+		 [Z_wdot*w, 0, -X_udot*u, N_rdot*r, 0 ,-K_pdot*p],
+		 [-Y_vdot*v, X_udot*u, 0, -M_qdot*q, K_pdot*p,0]])
+
+
+
+
+C_rb = np.array([[0, 0, 0, 0, m*w, 0],
+		 [0, 0, 0, -m*w, 0 ,0],
+		 [0, 0, 0, m*v, -m*u ,0],
+		 [0, 0, m*w, -m*v, I_z*r ,-I_y*q],
+		 [-m*w, 0, -m*v, -I_z*r, 0, -I_x*p],
+		 [m*v, -m*u, 0, I_y*q, -I_x*p, 0]])
+
+
+D = -np.diag()
 
 
 
