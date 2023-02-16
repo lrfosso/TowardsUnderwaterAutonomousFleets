@@ -118,7 +118,7 @@ M_rb = SX([[m, 0, 0, 0, m*z_g, 0],
 		 [0, m, 0, -m*z_g, 0 ,0],
 		 [0, 0, m, 0, 0, 0],
 		 [0, -m*z_g, 0, I_x, 0 ,0],
-		 [m*z_g, 0, 0, I_y, 0 ,0],
+		 [m*z_g, 0, 0, 0, I_y, 0],
 		 [0, 0, 0, 0, 0, I_z]])
 print(np.size(M_rb))
 print(v.shape)
@@ -171,12 +171,17 @@ print(tau_vec[0].size)
 #	M[5]@v_dot_vec + C[5]@v_vec + D[5]*v_vec[5] - tau_vec[5])
 
 #DAE written out
+#	M				C		D			tau
+f_1 = (m-X_udot)*u_dot + m*z_g*q_dot + (Z_wdot+m)*w*q - (X_u+X_u_abs*fabs(u))*u - (0.707*u_vec[0] + 0.707*u_vec[1]-0.707*u_vec[2]-0.707*u_vec[3])
+#	M				C			   D				tau
+f_2  = (m-Y_vdot)*v_dot -m*z_g*p_dot - (Z_wdot+m)*w*p - X_udot*u - (Y_v + Y_v_abs*fabs(v))*v - (-0.707*u_vec[0] + 0.707*u_vec[1]-0.707*u_vec[2] + 0.707*u_vec[3])
+#	M		   C					     D				tau
+f_3 = (m-Z_wdot)*w_dot + (m*v*p - m*u*q -Y_vdot*v*p + X_udot*u*r) - (Z_w+Z_w_abs*fabs(v))*w - ( -u_vec[4] + u_vec[5] + u_vec[6] - u_vec[7])
+#	M				   C
+f_4 = (-m*z_g*v_dot + (I_x-K_pdot)*p_dot) + (-Z_wdot*w+m*w)*v + (-m*v+Y_vdot*v)*w + (I_z*r-N_rdot*r)*q + (-I_y*q+M_qdot*q)*r + (K_p+K_p_abs*fabs(p))*p - (0.06*u_vec[0] - 0.06*u_vec[1] + 0.06*u_vec[2] - 0.06*u_vec[3] -0.218*u_vec[4] - 0.218*u_vec[5] + 0.218*u_vec[6] + 0.218*u_vec[7])
 
-f_1 = (m-X_udot)*u_dot + m*z_g*q_dot + (Z_wdot+m)*w*q + X_u+X_u_abs*fabs(u) - (0.707*u_vec[0] + 0.707*u_vec[1]-0.707*u_vec[2]-0.707*u_vec[3])
+f_5 =
 
-f_2  = (m-Y_vdot)*v_dot -m*z_g*p_dot - (Z_wdot+m)*w*p - X_udot*u - Y_v + Y_v_abs*fabs(v) - (-0.707*u_vec[0] + 0.707*u_vec[1]-0.707*u_vec[2] + 0.707*u_vec[3])
-
-f_3 = 
 
 
 
@@ -187,7 +192,7 @@ print(v)
 
 
 
-dynamics = vertcat(f_1,f_2)
+dynamics = vertcat(f_1,f_2,f_3,f_4)
 
 model.set_alg('dynamics',dynamics)
 
