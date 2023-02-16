@@ -64,17 +64,34 @@ u = model.set_variable('_x', 'u')
 v = model.set_variable('_x', 'v')
 w = model.set_variable('_x', 'w')
 #lin acc
-u_dot = model.set_variable('_x', 'u_dot')
-v_dot = model.set_variable('_x', 'v_dot')
-w_dot = model.set_variable('_x', 'w_dot')
+u_dot = model.set_variable('_z', 'u_dot')
+v_dot = model.set_variable('_z', 'v_dot')
+w_dot = model.set_variable('_z', 'w_dot')
 #ang vel
 p = model.set_variable('_x', 'p')
 q = model.set_variable('_x', 'q')
 r = model.set_variable('_x', 'r')
 #ang acc
-p_dot = model.set_variable('_x', 'p_dot')
-q_dot = model.set_variable('_x', 'q_dot')
-r_dot = model.set_variable('_x', 'r_dot')
+p_dot = model.set_variable('_z', 'p_dot')
+q_dot = model.set_variable('_z', 'q_dot')
+r_dot = model.set_variable('_z', 'r_dot')
+
+u_vec = model.set_variable('_u', 'uvec', shape=(8,1))
+
+T_mat = np.array([[0.707,0.707,-0.707,-0.707, 0, 0, 0, 0],
+		    [-0.707,0.707,-0.707,0.707, 0, 0, 0, 0 ],
+		    [0 , 0, 0, 0, -1, 1, 1, -1],
+		    [0.06, -0.06, 0.06, -0.06, -0.218, -0.218,0.218, 0.218],
+		    [0.06, 0.06, -0.06, -0.06, 0.120, -0.120, 0.120, -0.120],
+		    [-0.1888, 0.1888, 0.1888, -0.1888, 0, 0, 0, 0]],dtype=object)
+
+tau_vec = T_mat@u_vec
+
+
+
+
+
+
 
 model.set_rhs('x', u)
 model.set_rhs('y', v)
@@ -84,17 +101,26 @@ model.set_rhs('phi', p)
 model.set_rhs('theta', q)
 model.set_rhs('psi', r)
 
+model.set_rhs('p', p_dot)
+model.set_rhs('q', q_dot)
+model.set_rhs('r', r_dot)
+
+model.set_rhs('u', u_dot)
+model.set_rhs('v', v_dot)
+model.set_rhs('w', w_dot)
+
+
+
 
 #Building the equations of motion for the ROV
 
-M_rb = np.array([[m, 0, 0, 0, m*z_g, 0],
+M_rb = SX([[m, 0, 0, 0, m*z_g, 0],
 		 [0, m, 0, -m*z_g, 0 ,0],
 		 [0, 0, m, 0, 0, 0],
 		 [0, -m*z_g, 0, I_x, 0 ,0],
 		 [m*z_g, 0, 0, I_y, 0 ,0],
-		 [0, 0, 0, 0, 0, I_z]], dtype=object)
+		 [0, 0, 0, 0, 0, I_z]])
 print(np.size(M_rb))
-v = np.transpose(np.array([u,v,w,p,q,r]))
 print(v.shape)
 M_a = -np.diag([X_udot,Y_vdot,Z_wdot,K_pdot,M_qdot,N_rdot])
 
@@ -121,12 +147,9 @@ C_rb = np.array([[0, 0, 0, 0, m*w, 0],
 print(model.x)
 C = C_a + C_rb
 
-l = C@v
-print(l[2])
 
-
-#d = np.array([1,1,absv],dtype=object)
-D = -np.array([X_u+X_u_abs*(u**2)/u, Y_v+Y_v_abs*(v**2)/v, Z_w+Z_w_abs*(v**2)/v, K_p+K_p_abs*(p**2)/2, M_q+M_q_abs*q**2/q, N_r+N_r_abs*(r**2)/r],dtype=object)
+#D matrix written as a column vector, to avoid problesm with nmpy and casadi, possible since the D vector is a diagonal matrix
+D = -np.transpose(np.array([X_u+X_u_abs*u, Y_v+Y_v_abs*v, Z_w+Z_w_abs*v, K_p+K_p_abs*p, M_q+M_q_abs*q, N_r+N_r_abs*r],dtype=object))
 
 
 
@@ -135,7 +158,40 @@ D = -np.array([X_u+X_u_abs*(u**2)/u, Y_v+Y_v_abs*(v**2)/v, Z_w+Z_w_abs*(v**2)/v,
 
 
 
+v_dot_vec = np.transpose(np.array([u_dot,v_dot,w_dot,p_dot,q_dot,r_dot]))
 
+v_vec = np.transpose(np.array([u,v,w,p,q,r],dtype=object))
+print(tau_vec[0].size)
+#dynamics = vertcat(
+#	M[0]@v_dot_vec + C[0]@v_vec + D[0]*v_vec[0] - tau_vec[0],
+#	M[1]@v_dot_vec + C[1]@v_vec + D[1]*v_vec[1] - tau_vec[1],
+#	M[2]@v_dot_vec + C[2]@v_vec + D[2]*v_vec[2] - tau_vec[2],
+#	M[3]@v_dot_vec + C[3]@v_vec + D[3]*v_vec[3] - tau_vec[3],
+#	M[4]@v_dot_vec + C[4]@v_vec + D[4]*v_vec[4] - tau_vec[4],
+#	M[5]@v_dot_vec + C[5]@v_vec + D[5]*v_vec[5] - tau_vec[5])
+
+#DAE written out
+
+f_1 = (m-X_udot)*u_dot + m*z_g*q_dot + (Z_wdot+m)*w*q + X_u+X_u_abs*fabs(u) - (0.707*u_vec[0] + 0.707*u_vec[1]-0.707*u_vec[2]-0.707*u_vec[3])
+
+f_2  = (m-Y_vdot)*v_dot -m*z_g*p_dot - (Z_wdot+m)*w*p - X_udot*u - Y_v + Y_v_abs*fabs(v) - (-0.707*u_vec[0] + 0.707*u_vec[1]-0.707*u_vec[2] + 0.707*u_vec[3])
+
+f_3 = 
+
+
+
+print("u")
+print(u)
+print("v")
+print(v)
+
+
+
+dynamics = vertcat(f_1,f_2)
+
+model.set_alg('dynamics',dynamics)
+
+model.setup()
 
 
 
