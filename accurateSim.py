@@ -174,12 +174,12 @@ v_dot_vec = np.transpose(np.array([u_dot,v_dot,w_dot,p_dot,q_dot,r_dot]))
 v_vec = np.transpose(np.array([u,v,w,p,q,r],dtype=object))
 
 dynamics = vertcat(
-    M[0]@v_dot_vec + C[0]@v_vec + D[0]@v_vec[0] - tau_vec[0],
-	M[1]@v_dot_vec + C[1]@v_vec + D[1]@v_vec[1] - tau_vec[1],
-	M[2]@v_dot_vec + C[2]@v_vec + D[2]@v_vec[2] - tau_vec[2],
-	M[3]@v_dot_vec + C[3]@v_vec + D[3]@v_vec[3] - tau_vec[3],
-	M[4]@v_dot_vec + C[4]@v_vec + D[4]@v_vec[4] - tau_vec[4],
-	M[5]@v_dot_vec + C[5]@v_vec + D[5]@v_vec[5] - tau_vec[5])
+    M[0]@v_dot_vec + C[0]@v_vec + D[0]*v_vec[0] - tau_vec[0],
+	M[1]@v_dot_vec + C[1]@v_vec + D[1]*v_vec[1] - tau_vec[1],
+	M[2]@v_dot_vec + C[2]@v_vec + D[2]*v_vec[2] - tau_vec[2],
+	M[3]@v_dot_vec + C[3]@v_vec + D[3]*v_vec[3] - tau_vec[3],
+	M[4]@v_dot_vec + C[4]@v_vec + D[4]*v_vec[4] - tau_vec[4],
+	M[5]@v_dot_vec + C[5]@v_vec + D[5]*v_vec[5] - tau_vec[5])
 
 #DAE written out
 #	M				C		D			tau
@@ -218,7 +218,7 @@ mpc = do_mpc.controller.MPC(model)
 
 setup_mpc = {
         'n_horizon':20,
-        't_step':0.1,
+        't_step':0.01,
         'n_robust':0,
         'store_full_solution':True,
 
@@ -231,14 +231,14 @@ mterm = ((_x['x']-2)**2+ (_x['y']-2)**2+(_x['z']-2)**2)
 lterm = ((_x['x']-2)**2+ (_x['y']-2)**2+(_x['z']-2)**2)
 
 mpc.set_rterm(
-        u_1 = 1,
-        u_2 = 1,
-        u_3 = 1,
-        u_4 = 1,
-        u_5 = 1,
-        u_6 = 1,
-        u_7 = 1,
-        u_8 = 1
+        u_1 = 100,
+        u_2 = 100,
+        u_3 = 100,
+        u_4 = 100,
+        u_5 = 100,
+        u_6 = 100,
+        u_7 = 100,
+        u_8 = 100
         )
 
 
@@ -255,9 +255,9 @@ simulator = do_mpc.simulator.Simulator(model)
 params_simulator = {
     # Note: cvode doesn't support DAE systems.
     'integration_tool': 'idas',
-    'abstol': 0.001,
-    'reltol': 0.001,
-    't_step': 0.1,
+    'abstol': 1e-5,
+    'reltol': 1e-5,
+    't_step': 0.01,
 }
 
 simulator.set_param(**params_simulator)
@@ -284,7 +284,7 @@ for g in [sim_graphics, mpc_graphics]:
     g.add_line(var_type='_x', var_name='x', axis=ax[0])
     g.add_line(var_type='_x', var_name='y', axis=ax[0])
     g.add_line(var_type='_x', var_name='z', axis=ax[0])
-    g.add_line(var_type='_x', var_name='u_vec'[0], axis=ax[0])
+    #g.add_line(var_type='_u', var_name='u_1', axis=ax[0])
 
     # Plot the set motor positions (phi_m_1_set, phi_m_2_set) on the second axis:
 
@@ -293,7 +293,9 @@ ax[0].set_ylabel('angle position [rad]')
 
 #u0 = mpc.make_step(x0)
 #y_next = simulator.make_step(u0)
-for i in range(100):
+u0 = np.zeros((8,1))
+for i in range(400):
+    print(i)
     u0 = mpc.make_step(x0)
     y_next = simulator.make_step(u0)
     x0 = estimator.make_step(y_next)
