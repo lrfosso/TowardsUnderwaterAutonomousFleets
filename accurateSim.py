@@ -299,7 +299,7 @@ mpc = do_mpc.controller.MPC(model)
 
 setup_mpc = {
         'n_horizon':15,
-        't_step':0.01,
+        't_step':0.1,
         'n_robust':0,
         'store_full_solution':True,
 
@@ -310,20 +310,21 @@ _x = model.x
 _u = model.u
 #mterm = ((_x['x']-5)**2+ (_x['y']-5)**2+(_x['z']-5)**2 + (_x['u']**2  + _x['v']**2+ _x['w']**2)*0.01)
 #lterm = ((_x['x']-5)**2+ (_x['y']-5)**2+(_x['z']-5)**2 + (_x['u']**2  + _x['v']**2+ _x['w']**2)*0.01
-#       + (u_1**2+u_2**2+u_3**2+u_4**2+u_5**2 + u_6**2+u_7**2+u_8**2)*0.01)
-mterm = _x['x']**2 + _x['y']**2 + _x['z']**2
-lterm = _x['x']**2 + _x['y']**2 + _x['z']**2
-
+#       + (u_1**2+u_2**2+u_3**2+u_4**2+u_5**2 + u_6**2+u_7**2+u_8**2)*0.001)
+#mterm = _x['x']**2 + _x['y']**2 + _x['z']**2 + (_x['phi']**2 + _x['theta']**2 + _x['psi']**2)*0.1
+#lterm = _x['x']**2 + _x['y']**2 + _x['z']**2 + (_x['phi']**2 + _x['theta']**2 + _x['psi']**2)*0.1
+mterm = _x['z']**2 + _x['phi']**2 + _x['psi']**2
+lterm = _x['z']**2 + _x['phi']**2 + _x['psi']**2
 
 mpc.set_rterm(
-        u_1 = 0.001,
-        u_2 = 0.001,
-        u_3 = 0.001,
-        u_4 = 0.001,
-        u_5 = 0.001,
-        u_6 = 0.001,
-        u_7 = 0.001,
-        u_8 = 0.001
+        u_1 = 1,
+        u_2 = 1,
+        u_3 = 1,
+        u_4 = 1,
+        u_5 = 1,
+        u_6 = 1,
+        u_7 = 1,
+        u_8 = 1
         )
 
 
@@ -364,7 +365,8 @@ params_simulator = {
     'integration_tool': 'idas',
     'abstol': 1e-10,
     'reltol': 1e-10,
-    't_step': 0.01,
+    't_step': 0.1,
+
 }
 
 simulator.set_param(**params_simulator)
@@ -373,7 +375,7 @@ simulator.setup()
 
 #x0 = np.array([20, -11.4, -1.5, 10, 20, 20, -10, 1,1,2,3,4]).reshape(-1,1)
 #               x,y,z,phi,theta,psi,u,v,w,p,q,r
-x0 = np.array([0, 3, 2, 0, 0, 0, 0, 0,1,0,0,0]).reshape(-1,1)
+x0 = np.array([2, 3, 2, 0, 0, 0, 0, 0,1,0,0,0]).reshape(-1,1)
 mpc.x0 = x0
 estimator.x0 = x0
 simulator.x0 = x0
@@ -406,16 +408,20 @@ for g in [sim_graphics, mpc_graphics]:
     g.add_line(var_type='_u', var_name='u_4', axis=ax[1])
     g.add_line(var_type='_u', var_name='u_5', axis=ax[1])
     g.add_line(var_type='_u', var_name='u_6', axis=ax[1])
+    g.add_line(var_type='_u', var_name='u_7', axis=ax[1])
+    g.add_line(var_type='_u', var_name='u_8', axis=ax[1])
 
     # Plot the set motor positions (phi_m_1_set, phi_m_2_set) on the second axis:
 
 
-ax[0].set_ylabel('angle position [rad]')
+ax[0].set_ylabel('Position [m], velocity [m/s]')
+ax[1].set_ylabel('Input [N]')
+ax[2].set_ylabel('Angle [rad]')
 
 #u0 = mpc.make_step(x0)
 #y_next = simulator.make_step(u0)
 u0 = np.zeros((8,1))
-for i in range(2000):
+for i in range(3000):
     print(i)
     try:
        u0 = mpc.make_step(x0)
@@ -433,6 +439,18 @@ lines = (sim_graphics.result_lines['_x', 'x']+
         sim_graphics.result_lines['_x', 'w']
         )
 ax[0].legend(lines,'xyzuvw',title='position')
+
+lines = (sim_graphics.result_lines['_u', 'u_1']+
+        sim_graphics.result_lines['_u', 'u_2']+
+        sim_graphics.result_lines['_u', 'u_3']+
+        sim_graphics.result_lines['_u', 'u_4']+
+        sim_graphics.result_lines['_u', 'u_5']+
+        sim_graphics.result_lines['_u', 'u_6']+
+        sim_graphics.result_lines['_u', 'u_7']+
+        sim_graphics.result_lines['_u', 'u_8']
+        )
+
+ax[1].legend(lines,'12345678',title='input')
 
 lines = (sim_graphics.result_lines['_x', 'phi']+
         sim_graphics.result_lines['_x', 'theta']+
