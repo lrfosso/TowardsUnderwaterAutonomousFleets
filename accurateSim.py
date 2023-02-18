@@ -104,13 +104,13 @@ tau_vec = T_mat@u_vec
 
 
 
-model.set_rhs('x', u)
-model.set_rhs('y', v)
-model.set_rhs('z', w)
+model.set_rhs('x', cos(psi)*cos(theta)*u + (-sin(psi)*cos(phi) + cos(psi)*sin(theta)*sin(phi))*v + (sin(psi)*sin(phi)+cos(psi)*cos(phi)*sin(theta))*w)
+model.set_rhs('y', sin(psi)*cos(theta)*u + (cos(psi)*cos(phi)+sin(phi)*sin(theta)*sin(psi))*v + (-cos(psi)*sin(phi) + sin(theta)*sin(psi)*cos(phi))*w)
+model.set_rhs('z', -sin(theta)*u + cos(theta)*sin(phi)*v + cos(theta)*cos(phi)*w)
 
-model.set_rhs('phi', p)
-model.set_rhs('theta', q)
-model.set_rhs('psi', r)
+model.set_rhs('phi', p + sin(phi)*tan(theta)*q + cos(phi)*tan(theta)*r)
+model.set_rhs('theta',  cos(phi)*q - sin(phi)*r)
+model.set_rhs('psi', (sin(phi)/cos(theta))*q + (cos(phi)/cos(theta))*r)
 
 model.set_rhs('p', p_dot)
 model.set_rhs('q', q_dot)
@@ -291,6 +291,7 @@ simulator.set_param(**params_simulator)
 simulator.setup()
 
 #x0 = np.array([20, -11.4, -1.5, 10, 20, 20, -10, 1,1,2,3,4]).reshape(-1,1)
+#               x,y,z,phi,theta,psi,u,v,w,p,q,r
 x0 = np.array([-1, 1, 2, 2, 2, 2, 2, 1,1,2,3,4]).reshape(-1,1)
 mpc.x0 = x0
 estimator.x0 = x0
@@ -326,9 +327,9 @@ ax[0].set_ylabel('angle position [rad]')
 #u0 = mpc.make_step(x0)
 #y_next = simulator.make_step(u0)
 u0 = np.zeros((8,1))
-for i in range(300):
+for i in range(140):
     print(i)
-    #u0 = mpc.make_step(x0)
+    u0 = mpc.make_step(x0)
     y_next = simulator.make_step(u0)
     x0 = estimator.make_step(y_next)
 
