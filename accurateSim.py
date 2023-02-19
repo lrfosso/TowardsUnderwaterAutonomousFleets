@@ -308,7 +308,7 @@ mpc = do_mpc.controller.MPC(model)
 setup_mpc = {
         'n_horizon':40,
         't_step':0.1,
-        'n_robust':0,
+        'n_robust':2,
         'store_full_solution':True,
 
         }
@@ -321,8 +321,8 @@ _u = model.u
 #       + (u_1**2+u_2**2+u_3**2+u_4**2+u_5**2 + u_6**2+u_7**2+u_8**2)*0.001)
 #mterm = _x['x']**2 + _x['y']**2 + _x['z']**2 + (_x['phi']**2 + _x['theta']**2 + _x['psi']**2)*0.1
 #lterm = _x['x']**2 + _x['y']**2 + _x['z']**2 + (_x['phi']**2 + _x['theta']**2 + _x['psi']**2)*0.1
-mterm =   _x['z']**2 + _x['y']**2 +  5*_x['phi']**2 + _x['theta']**2 + _x['psi']**2 + _x['x']**2
-lterm =   _x['z']**2 + _x['y']**2 +  5*_x['phi']**2 + _x['theta']**2 + _x['psi']**2 + _x['x']**2 + (u_1**2+u_2**2+u_3**2+u_4**2+u_5**2 + u_6**2+u_7**2+u_8**2)*0.01
+mterm =   _x['z']**2 + _x['y']**2 +  _x['phi']**2 + (_x['theta'])**2 + _x['psi']**2 + _x['x']**2
+lterm =   (_x['z']-2)**2 + (_x['y']-5)**2 +  _x['phi']**2 + (_x['theta'] )**2 + _x['psi']**2 + (_x['x']-10)**2 + (u_1**2+u_2**2+u_3**2+u_4**2+u_5**2 + u_6**2+u_7**2+u_8**2)*0.01
 #_x['phi']**2 + _x['theta']**2 + _x['psi']**2 +
 #_x['phi']**2 + _x['theta']**2 + _x['psi']**2 +
 mpc.set_rterm(
@@ -340,25 +340,24 @@ mpc.set_rterm(
 
 mpc.set_objective(mterm=mterm,lterm=lterm)
 
-mpc.bounds['lower','_u', 'u_1'] = - 40
-mpc.bounds['lower','_u', 'u_2'] = - 40
-mpc.bounds['lower','_u', 'u_3'] = - 40
-mpc.bounds['lower','_u', 'u_4'] = - 40
-mpc.bounds['lower','_u', 'u_5'] = - 40
-mpc.bounds['lower','_u', 'u_6'] = - 40
-mpc.bounds['lower','_u', 'u_7'] = - 40
-mpc.bounds['lower','_u', 'u_8'] = - 40
+mpc.bounds['lower', '_u', 'u_1'] = - 40
+mpc.bounds['lower', '_u', 'u_2'] = - 40
+mpc.bounds['lower', '_u', 'u_3'] = - 40
+mpc.bounds['lower', '_u', 'u_4'] = - 40
+mpc.bounds['lower', '_u', 'u_5'] = - 40
+mpc.bounds['lower', '_u', 'u_6'] = - 40
+mpc.bounds['lower', '_u', 'u_7'] = - 40
+mpc.bounds['lower', '_u', 'u_8'] = - 40
 
 
-
-mpc.bounds['upper','_u', 'u_1'] =  40
-mpc.bounds['upper','_u', 'u_2'] =  40
-mpc.bounds['upper','_u', 'u_3'] =  40
-mpc.bounds['upper','_u', 'u_4'] =  40
-mpc.bounds['upper','_u', 'u_5'] =  40
-mpc.bounds['upper','_u', 'u_6'] =  40
-mpc.bounds['upper','_u', 'u_7'] =  40
-mpc.bounds['upper','_u', 'u_8'] =  40
+mpc.bounds['upper', '_u', 'u_1'] =  40
+mpc.bounds['upper', '_u', 'u_2'] =  40
+mpc.bounds['upper', '_u', 'u_3'] =  40
+mpc.bounds['upper', '_u', 'u_4'] =  40
+mpc.bounds['upper', '_u', 'u_5'] =  40
+mpc.bounds['upper', '_u', 'u_6'] =  40
+mpc.bounds['upper', '_u', 'u_7'] =  40
+mpc.bounds['upper', '_u', 'u_8'] =  40
 
 
 mpc.setup()
@@ -384,7 +383,7 @@ simulator.setup()
 
 #x0 = np.array([20, -11.4, -1.5, 10, 20, 20, -10, 1,1,2,3,4]).reshape(-1,1)
 #               x,y,z,phi,theta,psi,u,v,w,p,q,r
-x0 = np.array([2, 3, 2, 0, 0, 0, 0, 0,0,-0,-0,0]).reshape(-1,1)
+x0 = np.array([2, 3, 2, 3.1/2, -3.1/2, 0, 1, 0.5,-1,0,0,0]).reshape(-1,1)
 mpc.x0 = x0
 estimator.x0 = x0
 simulator.x0 = x0
@@ -410,6 +409,9 @@ for g in [sim_graphics, mpc_graphics]:
     g.add_line(var_type='_x', var_name='phi', axis=ax[2])
     g.add_line(var_type='_x', var_name='theta', axis=ax[2])
     g.add_line(var_type='_x', var_name='psi', axis=ax[2])
+    g.add_line(var_type='_x', var_name='p', axis=ax[2])
+    g.add_line(var_type='_x', var_name='q', axis=ax[2])
+    g.add_line(var_type='_x', var_name='r', axis=ax[2])
 
     g.add_line(var_type='_u', var_name='u_1', axis=ax[1])
     g.add_line(var_type='_u', var_name='u_2', axis=ax[1])
@@ -430,7 +432,7 @@ ax[2].set_ylabel('Angle [rad]')
 #u0 = mpc.make_step(x0)
 #y_next = simulator.make_step(u0)
 u0 = np.zeros((8,1))
-for i in range(60):
+for i in range(200):
     print(i)
     u0 = mpc.make_step(x0)
     y_next = simulator.make_step(u0)
@@ -459,8 +461,11 @@ ax[1].legend(lines,'12345678',title='input')
 
 lines = (sim_graphics.result_lines['_x', 'phi']+
         sim_graphics.result_lines['_x', 'theta']+
-        sim_graphics.result_lines['_x', 'psi'])
-ax[2].legend(lines,'φθψ',title='euler angles')
+        sim_graphics.result_lines['_x', 'psi']+
+        sim_graphics.result_lines['_x', 'p']+
+        sim_graphics.result_lines['_x', 'q']+
+        sim_graphics.result_lines['_x', 'r'])
+ax[2].legend(lines,'φθψpqr',title='euler angles')
 sim_graphics.plot_results()
 
 sim_graphics.reset_axes()
