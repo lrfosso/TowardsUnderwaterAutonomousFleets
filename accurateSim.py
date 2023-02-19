@@ -10,6 +10,7 @@ model = do_mpc.model.Model(model_type)
 
 m = 11.5                    # Kg
 W = 112.8                   # Newton
+#W = 114.8                   # Newton neutral buoyancy
 B = 114.8                   # Newton
 r_b = np.array([[0],        # m     
                 [0],
@@ -180,7 +181,7 @@ v_vec = np.transpose(np.array([u,v,w,p,q,r],dtype=object))
 #hydrostatics
 g_1 = (W-B)*sin(theta)
 g_2 = -(W-B)*cos(theta)*sin(phi)
-g_3 = -(w-B)*cos(theta)*cos(phi)
+g_3 = -(W-B)*cos(theta)*cos(phi)
 g_4 = -z_g*W*cos(theta)*sin(phi)
 g_5 = z_g*W*sin(theta)
 g_6 = 0
@@ -235,13 +236,20 @@ D_l_5 = -M_q*q
 D_l_6 = -N_r*r
 
 #D_nl
-D_nl_1 = -(X_u + X_u_abs*fabs(u))*u
-D_nl_2 = -(Y_v + Y_v_abs*fabs(v))*v 
-D_nl_3 = -(Z_w + Z_w_abs*fabs(w))*w
-D_nl_4 = -(K_p + K_p_abs*fabs(p))*p
-D_nl_5 = -(M_q + M_q_abs*fabs(q))*q
-D_nl_6 = -(N_r + N_r_abs*fabs(r))*r
+D_nl_1 = -(X_u_abs*fabs(u))*u
+D_nl_2 = -(Y_v_abs*fabs(v))*v 
+D_nl_3 = -(Z_w_abs*fabs(w))*w
+D_nl_4 = -(K_p_abs*fabs(p))*p
+D_nl_5 = -(M_q_abs*fabs(q))*q
+D_nl_6 = -(N_r_abs*fabs(r))*r
 
+
+#f_1 = M_rb_1 + M_a_1 + C_rb_1 + C_a_1 + D_l_1  + g_1 - tau_1
+#f_2 = M_rb_2 + M_a_2 + C_rb_2 + C_a_2 + D_l_2  + g_2 - tau_2
+#f_3 = M_rb_3 + M_a_3 + C_rb_3 + C_a_3 + D_l_3  + g_3 - tau_3
+#f_4 = M_rb_4 + M_a_4 + C_rb_4 + C_a_4 + D_l_4  + g_4 - tau_4
+#f_5 = M_rb_5 + M_a_5 + C_rb_5 + C_a_5 + D_l_5  + g_5 - tau_5
+#f_6 = M_rb_6 + M_a_6 + C_rb_6 + C_a_6 + D_l_6  + g_6 - tau_6
 
 f_1 = M_rb_1 + M_a_1 + C_rb_1 + C_a_1 + D_l_1 + D_nl_1 + g_1 - tau_1
 f_2 = M_rb_2 + M_a_2 + C_rb_2 + C_a_2 + D_l_2 + D_nl_2 + g_2 - tau_2
@@ -298,7 +306,7 @@ model.setup()
 mpc = do_mpc.controller.MPC(model)
 
 setup_mpc = {
-        'n_horizon':15,
+        'n_horizon':40,
         't_step':0.1,
         'n_robust':0,
         'store_full_solution':True,
@@ -313,43 +321,44 @@ _u = model.u
 #       + (u_1**2+u_2**2+u_3**2+u_4**2+u_5**2 + u_6**2+u_7**2+u_8**2)*0.001)
 #mterm = _x['x']**2 + _x['y']**2 + _x['z']**2 + (_x['phi']**2 + _x['theta']**2 + _x['psi']**2)*0.1
 #lterm = _x['x']**2 + _x['y']**2 + _x['z']**2 + (_x['phi']**2 + _x['theta']**2 + _x['psi']**2)*0.1
-mterm = _x['z']**2 + _x['phi']**2 + _x['psi']**2
-lterm = _x['z']**2 + _x['phi']**2 + _x['psi']**2
-
+mterm =   _x['z']**2 + _x['y']**2 +  5*_x['phi']**2 + _x['theta']**2 + _x['psi']**2 + _x['x']**2
+lterm =   _x['z']**2 + _x['y']**2 +  5*_x['phi']**2 + _x['theta']**2 + _x['psi']**2 + _x['x']**2 + (u_1**2+u_2**2+u_3**2+u_4**2+u_5**2 + u_6**2+u_7**2+u_8**2)*0.01
+#_x['phi']**2 + _x['theta']**2 + _x['psi']**2 +
+#_x['phi']**2 + _x['theta']**2 + _x['psi']**2 +
 mpc.set_rterm(
-        u_1 = 1,
-        u_2 = 1,
-        u_3 = 1,
-        u_4 = 1,
-        u_5 = 1,
-        u_6 = 1,
-        u_7 = 1,
-        u_8 = 1
+        u_1 = 0.1,
+        u_2 = 0.1,
+        u_3 = 0.1,
+        u_4 = 0.1,
+        u_5 = 0.1,
+        u_6 = 0.1,
+        u_7 = 0.1,
+        u_8 = 0.1
         )
 
 
 
 mpc.set_objective(mterm=mterm,lterm=lterm)
 
-mpc.bounds['lower','_u', 'u_1'] = - 10
-mpc.bounds['lower','_u', 'u_2'] = - 10
-mpc.bounds['lower','_u', 'u_3'] = - 10
-mpc.bounds['lower','_u', 'u_4'] = - 10
-mpc.bounds['lower','_u', 'u_5'] = - 10
-mpc.bounds['lower','_u', 'u_6'] = - 10
-mpc.bounds['lower','_u', 'u_7'] = - 10
-mpc.bounds['lower','_u', 'u_8'] = - 10
+mpc.bounds['lower','_u', 'u_1'] = - 40
+mpc.bounds['lower','_u', 'u_2'] = - 40
+mpc.bounds['lower','_u', 'u_3'] = - 40
+mpc.bounds['lower','_u', 'u_4'] = - 40
+mpc.bounds['lower','_u', 'u_5'] = - 40
+mpc.bounds['lower','_u', 'u_6'] = - 40
+mpc.bounds['lower','_u', 'u_7'] = - 40
+mpc.bounds['lower','_u', 'u_8'] = - 40
 
 
 
-mpc.bounds['upper','_u', 'u_1'] =  10
-mpc.bounds['upper','_u', 'u_2'] =  10
-mpc.bounds['upper','_u', 'u_3'] =  10
-mpc.bounds['upper','_u', 'u_4'] =  10
-mpc.bounds['upper','_u', 'u_5'] =  10
-mpc.bounds['upper','_u', 'u_6'] =  10
-mpc.bounds['upper','_u', 'u_7'] =  10
-mpc.bounds['upper','_u', 'u_8'] =  10
+mpc.bounds['upper','_u', 'u_1'] =  40
+mpc.bounds['upper','_u', 'u_2'] =  40
+mpc.bounds['upper','_u', 'u_3'] =  40
+mpc.bounds['upper','_u', 'u_4'] =  40
+mpc.bounds['upper','_u', 'u_5'] =  40
+mpc.bounds['upper','_u', 'u_6'] =  40
+mpc.bounds['upper','_u', 'u_7'] =  40
+mpc.bounds['upper','_u', 'u_8'] =  40
 
 
 mpc.setup()
@@ -375,7 +384,7 @@ simulator.setup()
 
 #x0 = np.array([20, -11.4, -1.5, 10, 20, 20, -10, 1,1,2,3,4]).reshape(-1,1)
 #               x,y,z,phi,theta,psi,u,v,w,p,q,r
-x0 = np.array([2, 3, 2, 0, 0, 0, 0, 0,1,0,0,0]).reshape(-1,1)
+x0 = np.array([2, 3, 2, 0, 0, 0, 0, 0,0,-0,-0,0]).reshape(-1,1)
 mpc.x0 = x0
 estimator.x0 = x0
 simulator.x0 = x0
@@ -421,13 +430,9 @@ ax[2].set_ylabel('Angle [rad]')
 #u0 = mpc.make_step(x0)
 #y_next = simulator.make_step(u0)
 u0 = np.zeros((8,1))
-for i in range(3000):
+for i in range(60):
     print(i)
-    try:
-       u0 = mpc.make_step(x0)
-    except RuntimeError:
-        u0 = np.zeros((8,1))
-        break
+    u0 = mpc.make_step(x0)
     y_next = simulator.make_step(u0)
     x0 = estimator.make_step(y_next)
 
@@ -455,7 +460,7 @@ ax[1].legend(lines,'12345678',title='input')
 lines = (sim_graphics.result_lines['_x', 'phi']+
         sim_graphics.result_lines['_x', 'theta']+
         sim_graphics.result_lines['_x', 'psi'])
-ax[2].legend(lines,'ptp',title='euler angles')
+ax[2].legend(lines,'φθψ',title='euler angles')
 sim_graphics.plot_results()
 
 sim_graphics.reset_axes()
