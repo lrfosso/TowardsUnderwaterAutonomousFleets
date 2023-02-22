@@ -93,7 +93,7 @@ def update_graph(num):
     ## Plotting text
     plt.legend(loc="upper left")
     sample_count.set_text("Step nr.:{}".format(num))
-    title.set_text("MPC controlled ROV \n Agent1 pos: ({}, {}, {}) \nAgent2 pos: ({}, {}, {})".format(f'{x_1[0]:10.2f}', f'{y_1[0]:10.2f}', f'{z_1[0]:10.2f}', f'{x_2[0]:10.2f}', f'{y_2[0]:10.2f}', f'{z_2[0]:10.2f}'))
+    title.set_text("MPC controlled ROV \nAgent1 pos: ({}, {}, {}) \nAgent2 pos: ({}, {}, {})".format(f'{x_1[0]:10.2f}', f'{y_1[0]:10.2f}', f'{z_1[0]:10.2f}', f'{x_2[0]:10.2f}', f'{y_2[0]:10.2f}', f'{z_2[0]:10.2f}'))
     return title, graph_1, graph_2, sample_count
 
 ############# Setting up the figure ###############################
