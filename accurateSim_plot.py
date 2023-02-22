@@ -526,7 +526,7 @@ for i in range(200):
         psi_setp = 0
 
 ######################### DETTE ER FOR PLOT ########################################
-for i in range(len(test3)):
+for i in range(len(lagring)):
     lagring[i] = [float(test3[i][j]) for j in range(len(lagring[i]))]
 data = [list(lagring[i]) for i in range(len(lagring))]
 df = pd.DataFrame(data, columns=['x','y','z','phi','theta','psi','u','v','w','p','q','r'])
