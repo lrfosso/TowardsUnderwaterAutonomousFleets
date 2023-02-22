@@ -50,38 +50,48 @@ def update_graph(num):
     global phi
     global theta
     global quiver
+    global quiver2
     quiver.remove()
-    liste = get_vector(phi[num], theta[num])
-    u = liste[0]
-    v = liste[1]
-    w = liste[2]
-    quiver = ax.quiver(data.x,data.y,data.z,u,v,w, length=3, normalize=True, color="red")
+    quiver = ax.quiver(data.x,data.y,data.z,*get_vector(phi[num], theta[num]), length=3, normalize=True, color="red")
+    quiver2.remove()
+    quiver2 = ax.quiver(data.x-1,data.y-1,data.z-1,*get_vector(phi[num], theta[num]), length=3, normalize=True, color="red")
     graph.set_data (data.x, data.y)
     graph.set_3d_properties(data.z)
-    title.set_text('3D Test, time={}'.format(num))
-    return title, graph, 
+    graph2.set_data (data.x-1, data.y-1)
+    graph2.set_3d_properties(data.z-1)
+    #print(data.x[x])
+    #print(type(data.x.values.astype(float)))
+    liste = data.values.tolist()
+    x = 0
+    y = 0
+    z = 0
+    for var in liste:
+        x = var[1]
+        y = var[2]
+        z = var[3]
+    title.set_text("MPC plot t: {} \nx: {} y: {} z: {} \nx2: {} y2: {} z2: {}".format(num, round(x,2), round(y,2), round(z,2), round(x-1,2), round(y-1,2), round(z-1,2)))
+    return title, graph, graph2
 
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 quiver = ax.quiver(1,1,1,1,1,1)
+quiver2 = ax.quiver(1,1,1,1,1,1)
 
 ax.set(xlim3d=(-10, 10), xlabel='X')
 ax.set(ylim3d=(-10, 10), ylabel='Y')
 ax.set(zlim3d=(-10, 10), zlabel='Z')
 
-title = ax.set_title('3D Test')
+title = ax.set_title('MPC plot')
+
 
 data=df[df['time']==0]
 graph, = ax.plot(data.x, data.y, data.z, linestyle="", marker="o")
+graph2, = ax.plot(data.x-1, data.y-1, data.z-1, linestyle="", marker="o", color="green")  
 
 ani = animation.FuncAnimation(fig, update_graph, len(t), 
                                interval=10, blit=True)
-ani.save('myanimation.gif', writer='imagemagick', fps=20) 
+#ani.save('myanimation.gif', writer='imagemagick', fps=20)
 plt.show()
-
-
-
-
 
