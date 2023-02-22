@@ -14,7 +14,7 @@ https://coderslegacy.com/python/save-animations-in-matplotlib/
 """
 
 df = pd.read_csv("data.csv")
-#print(df.head())
+
 x = list(df[df.columns[0]])
 y = list(df[df.columns[1]])
 z = list(df[df.columns[2]])
@@ -25,8 +25,22 @@ global theta
 phi = list(df[df.columns[3]]) #Yaw
 theta = list(df[df.columns[4]]) #Pitch
 
+df2 = pd.read_csv("data2.csv")
+
+#print(df.head())
+x2 = list(df2[df2.columns[0]])
+y2 = list(df2[df2.columns[1]])
+z2 = list(df2[df2.columns[2]])
+t2 = list(range(1, len(x2)+1))
+t2 = [float(i) for i in t2]
+global phi2
+global theta2
+phi2 = list(df2[df2.columns[3]]) #Yaw
+theta2 = list(df2[df2.columns[4]]) #Pitch
+
 
 df = pd.DataFrame({"time": t ,"x" : x, "y" : y, "z" : z})
+df2 = pd.DataFrame({"time": t2 ,"x" : x2, "y" : y2, "z" : z2})
 #df = pd.DataFrame({"time": [1,2,3,4,5,6,7,8,9,10] ,"x" : [1,2,3,4,5,6,7,8,9,10], "y" : [1,2,3,4,5,6,7,8,9,10], "z" : [1,2,3,4,5,6,7,8,9,10]})
 #print(df)
 
@@ -47,21 +61,23 @@ def get_vector(phi, theta):
 
 def update_graph(num):
     data=df[df['time']==num]
+    data2=df2[df2['time']==num]
     global phi
     global theta
+    global phi2
+    global theta2
     global quiver
     global quiver2
     quiver.remove()
     quiver = ax.quiver(data.x,data.y,data.z,*get_vector(phi[num], theta[num]), length=3, normalize=True, color="red")
     quiver2.remove()
-    quiver2 = ax.quiver(data.x-1,data.y-1,data.z-1,*get_vector(phi[num], theta[num]), length=3, normalize=True, color="red")
+    quiver2 = ax.quiver(data2.x,data2.y,data2.z,*get_vector(phi2[num], theta2[num]), length=3, normalize=True, color="red")
     graph.set_data (data.x, data.y)
     graph.set_3d_properties(data.z)
-    graph2.set_data (data.x-1, data.y-1)
-    graph2.set_3d_properties(data.z-1)
-    #print(data.x[x])
-    #print(type(data.x.values.astype(float)))
+    graph2.set_data (data2.x, data2.y)
+    graph2.set_3d_properties(data2.z)
     liste = data.values.tolist()
+    liste2 = data2.values.tolist()
     x = 0
     y = 0
     z = 0
@@ -69,7 +85,14 @@ def update_graph(num):
         x = var[1]
         y = var[2]
         z = var[3]
-    title.set_text("MPC plot t: {} \nx: {} y: {} z: {} \nx2: {} y2: {} z2: {}".format(num, round(x,2), round(y,2), round(z,2), round(x-1,2), round(y-1,2), round(z-1,2)))
+    x2 = 0
+    y2 = 0
+    z2 = 0
+    for var in liste2:
+        x = var[1]
+        y = var[2]
+        z = var[3]
+    title.set_text("MPC plot t: {} \nx1:{} y1:{} z1:{} \nx2:{} y2:{} z2:{}".format(num, f'{x:10.2f}', f'{y:10.2f}', f'{z:10.2f}', f'{x-1:10.2f}', f'{y-1:10.2f}', f'{z-1:10.2f}'))
     return title, graph, graph2
 
 
@@ -87,11 +110,12 @@ title = ax.set_title('MPC plot')
 
 
 data=df[df['time']==0]
+data2=df2[df2['time']==0]
 graph, = ax.plot(data.x, data.y, data.z, linestyle="", marker="o")
-graph2, = ax.plot(data.x-1, data.y-1, data.z-1, linestyle="", marker="o", color="green")  
+graph2, = ax.plot(data2.x, data2.y, data2.z, linestyle="", marker="o", color="green")  
 
 ani = animation.FuncAnimation(fig, update_graph, len(t), 
                                interval=10, blit=True)
-#ani.save('myanimation.gif', writer='imagemagick', fps=20)
+ani.save('myanimation.gif', writer='imagemagick', fps=20)
 plt.show()
 
