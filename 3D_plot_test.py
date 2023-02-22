@@ -13,7 +13,7 @@ https://matplotlib.org/stable/gallery/animation/random_walk.html
 https://coderslegacy.com/python/save-animations-in-matplotlib/
 """
 
-df = pd.read_csv("data.csv")
+df = pd.read_csv("data1.csv")
 
 x = list(df[df.columns[0]])
 y = list(df[df.columns[1]])
