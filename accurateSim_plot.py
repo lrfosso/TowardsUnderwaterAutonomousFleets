@@ -498,9 +498,8 @@ ax[2].set_ylabel('Angle [rad]')
 #y_next = simulator.make_step(u0)
 
 
-test1 = []
-test2 = []
-test3 = []
+lagring = [] ######################### DENNE ER FOR PLOT ########################################
+
 u0 = np.zeros((8,1))
 for i in range(200):
     print("################################### {} ################################################".format(i))
@@ -508,7 +507,7 @@ for i in range(200):
     y_next = simulator.make_step(u0)
     x0 = estimator.make_step(y_next)
 
-    lagring.append(x0)  ## Denne er for å lagre data til csv fil
+    lagring.append(x0) ######################### DENNE ER FOR PLOT ########################################
 
     if(i == 50):
         x_setp = -3
@@ -526,14 +525,14 @@ for i in range(200):
         theta_setp = -1
         psi_setp = 0
 
-## Denne er for å lagre data til csv fil
+######################### DETTE ER FOR PLOT ########################################
 for i in range(len(test3)):
     lagring[i] = [float(test3[i][j]) for j in range(len(lagring[i]))]
 data = [list(lagring[i]) for i in range(len(lagring))]
 df = pd.DataFrame(data, columns=['x','y','z','phi','theta','psi','u','v','w','p','q','r'])
 df.to_csv('data.csv', index=False)
 print(df)
-
+#####################################################################################
 
 lines = (sim_graphics.result_lines['_x', 'x']+
         sim_graphics.result_lines['_x', 'y']+
