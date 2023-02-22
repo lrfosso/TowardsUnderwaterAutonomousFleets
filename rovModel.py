@@ -89,7 +89,12 @@ class MyROVModel():
         u_8 = self.model.set_variable('_u', 'u_8')
         
         
-        
+        x_sp = self.model.set_variable('_tvp', 'x_sp')
+        y_sp = self.model.set_variable('_tvp', 'y_sp')
+        z_sp = self.model.set_variable('_tvp', 'z_sp')
+        phi_sp = self.model.set_variable('_tvp', 'phi_sp')
+        theta_sp = self.model.set_variable('_tvp', 'theta_sp')
+        psi_sp = self.model.set_variable('_tvp', 'psi_sp')        
         
         
         

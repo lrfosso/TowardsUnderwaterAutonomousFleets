@@ -14,8 +14,8 @@ from rovController import *
 modelRov1 = MyROVModel()
 modelRov2 = MyROVModel()
 
-mpc1 = MyController(modelRov1,modelRov2,[5,4,30,1,2,0,0,0,0,0,0,0,0,0,0])
-mpc2 = MyController(modelRov2,modelRov1)
+mpc1 = MyController(modelRov1,modelRov2,0,[10,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+mpc2 = MyController(modelRov2,modelRov1, 1)
 estimator1 = do_mpc.estimator.StateFeedback(modelRov1.model)
 estimator2 = do_mpc.estimator.StateFeedback(modelRov1.model)
 
@@ -23,6 +23,21 @@ estimator2 = do_mpc.estimator.StateFeedback(modelRov1.model)
 simulator1 = do_mpc.simulator.Simulator(modelRov1.model)
 simulator2 = do_mpc.simulator.Simulator(modelRov2.model)
 
+tvp_template1 = simulator1.get_tvp_template()
+tvp_template2 = simulator2.get_tvp_template()
+
+#def tvp_fun(tvp_template,t_now):
+#        tvp_template['x_sp'] = 0
+#        tvp_template['y_sp'] = 0
+#        tvp_template['z_sp'] = 0
+#        tvp_template['phi_sp'] = 0
+#        tvp_template['theta_sp'] = 0
+#        tvp_template['psi_sp'] = 0
+#        return tvp_template
+
+
+simulator1.set_tvp_fun(tvp_template1)
+simulator2.set_tvp_fun(tvp_template2)
 
 params_simulator = {
     # Note: cvode doesn't support DAE systems.
@@ -41,8 +56,8 @@ simulator2.setup()
 
 #x0 = np.array([20, -11.4, -1.5, 10, 20, 20, -10, 1,1,2,3,4]).reshape(-1,1)
 #               x,y,z,phi,theta,psi,u,v,w,p,q,r
-x0_1 = np.array([2, 3, 2, 0, 1/2, 0, 1, 0.5,-1,0,0,0]).reshape(-1,1)
-x0_2 = np.array([1, 4, -1, 0, 2/2, 0, 1, 0.5,-1,0,0,0]).reshape(-1,1)
+x0_1 = np.array([2, 3, 2, 0, 1/2, 0, 0, 0,0,0,0,0]).reshape(-1,1)
+x0_2 = np.array([1, 4, -1, 0, 2/2, 0, 0, 0,0,0,0,0]).reshape(-1,1)
 
 mpc1.x0 = x0_1
 mpc2.x0 = x0_2
@@ -104,16 +119,35 @@ plot2 = []
 
 u0_1 = np.zeros((8,1))
 u0_2 = np.zeros((8,1))
-for i in range(200):
+j = 0
+for i in range(400):
     print(i)
+    j += 1
     u0_1 = mpc1.mpc.make_step(x0_1)
     u0_2 = mpc2.mpc.make_step(x0_2)
-    
+
     y_next_1 = simulator1.make_step(u0_1)
     y_next_2 = simulator2.make_step(u0_2)
+    
+    
+
 
     x0_1 = estimator1.make_step(y_next_1)
-    x0_2 = estimator1.make_step(y_next_2)
+    x0_2 = estimator2.make_step(y_next_2)
+    if (j == 50):
+        mpc1.x_setp += 5
+    if (j  == 100):
+        mpc1.y_setp += 5
+    if (j == 150):
+        mpc1.x_setp -= 5
+    if (j == 200):
+        mpc1.y_setp -= 5
+    mpc2.x_setp = x0_1[0]
+    mpc2.y_setp = x0_1[1]
+    mpc2.z_setp = x0_1[2]
+    mpc2.phi_setp = x0_1[3]
+    mpc2.theta_setp = x0_1[4]
+    mpc2.psi_setp = x0_1[5]
 
     plot1.append(x0_1)
     plot2.append(x0_2)
