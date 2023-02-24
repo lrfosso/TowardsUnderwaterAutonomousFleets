@@ -110,6 +110,8 @@ sample_count = ax.text(0, 0, 12, "", fontsize=10, color="Black")
 vector_1 = ax.quiver(1,1,1,1,1,1, length=3, normalize=True, color="blue")
 vector_2 = ax.quiver(1,1,1,1,1,1, length=3, normalize=True, color="green")
 ## Setting up position of ROV
+data_1 = df_1[df_1['time']==0]
+data_2 = df_2[df_2['time']==0]
 graph_1, = ax.plot(data_1.x, data_1.y, data_1.z, linestyle="", marker="o", color="blue", label="Agent1", animated=True, markersize=9)
 graph_2, = ax.plot(data_2.x, data_2.y, data_2.z, linestyle="", marker="o", color="green", label="Agent2", animated=True, markersize=9)  
 ## Setting up animation
