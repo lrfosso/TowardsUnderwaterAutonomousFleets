@@ -7,9 +7,9 @@ import pandas as pd
 
 import do_mpc
 
-from rovModel import *
+from rovModel_circle import *
 
-from rovController import *
+from rovController_circle import *
 
 modelRov1 = MyROVModel()
 modelRov2 = MyROVModel()
