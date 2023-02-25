@@ -49,8 +49,8 @@ class MyController():
                 mterm =   (_x_rov1['theta']- _tvp_rov1['theta_sp'] )**2 + (_x_rov1['psi'] - _tvp_rov1['psi_sp'])**2 + (_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 +(_x_rov1['z']-_tvp_rov1['z_sp'])**2 + (_x_rov1['y']-_tvp_rov1['y_sp'])**2 + (_x_rov1['x']-_tvp_rov1['x_sp'])**2
                 lterm = ((((_tvp_rov1['x_sp']-_x_rov1['x'])**2+(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius**2)**2 +
                         ((((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2)-lengde**2)**2)*0.01 +
-                        (_x_rov1['theta']- _tvp_rov1['theta_sp'] )**2 + (_x_rov1['psi'] - _tvp_rov1['psi_sp'])**2 + (_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 +
-                        (_x_rov1['z']-_tvp_rov1['z_sp'])**2 +
+                        (_x_rov1['theta']- _tvp_rov1['theta_sp'] )**2 + (_x_rov1['psi'] - _tvp_rov1['psi_sp'])**2 +
+                        (_x_rov1['z']-_tvp_rov1['z_sp'])**2 + _x_rov1['phi'] **2 +
                         (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2+_u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+_u_rov1['u_7']**2+_u_rov1['u_8']**2)*0.01
                         )
 
