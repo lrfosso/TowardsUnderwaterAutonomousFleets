@@ -141,9 +141,9 @@ for i in range(300):
     mpc1.y_2 = x0_2[1]
     mpc1.z_2 = x0_2[2]
 
-    mpc2.x_1 = x0_1[0]
-    mpc2.y_1 = x0_1[1]
-    mpc2.z_1 = x0_1[2]
+    mpc2.x_2 = x0_1[0]
+    mpc2.y_2 = x0_1[1]
+    mpc2.z_2 = x0_1[2]
 
     if (j == 100):
         mpc1.x_setp += 5
