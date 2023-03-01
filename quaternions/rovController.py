@@ -2,7 +2,7 @@ import do_mpc
 class MyController():
 
 
-    def __init__(self, rovModel1, rovModel2, trackMode,  setPoints = [0,0,0,0,0,0,0,0,0,0,0,0,0]):
+    def __init__(self, rovModel1, rovModel2, trackMode,  setPoints = [0,0,0,1,0,0,0,0,0,0,0,0,0]):
         self.x_setp = setPoints[0]
         self.y_setp = setPoints[1]
         self.z_setp = setPoints[2]
@@ -42,7 +42,7 @@ class MyController():
                 mterm = (_x_rov1['x'] + 2 - _tvp_rov1['x_sp'])**2 + (_x_rov1['y'] + 0 - _tvp_rov1['y_sp'])**2 + (_x_rov1['z'] + 2 - _tvp_rov1['z_sp'])**2 + (_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 + (_x_rov1['theta'] - _tvp_rov1['theta_sp'])**2 +(_x_rov1['psi']  - _tvp_rov1['psi_sp'])**2  
                 lterm = (_x_rov1['x'] + 2 - _tvp_rov1['x_sp'])**2 + (_x_rov1['y'] + 0 - _tvp_rov1['y_sp'])**2 + (_x_rov1['z'] + 2 - _tvp_rov1['z_sp'])**2 +(_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 + (_x_rov1['theta']  - _tvp_rov1['theta_sp'])**2 +(_x_rov1['psi']  - _tvp_rov1['psi_sp'])**2
             case 2:
-                mterm = (_x_rov1['x']**2 + _x_rov1['y']**2 +  (_x_rov1['q_0'])**2 +(_x_rov1['e_1'])**2  + 100*(_x_rov1['e_2']-1)**2  + _x_rov1['e_3']**2)
+                mterm = (_x_rov1['x']**2 + _x_rov1['y']**2 +  100*(_x_rov1['q_0']-1)**2 +(_x_rov1['e_1'])**2  + (_x_rov1['e_2'])**2  + (_x_rov1['e_3'])**2)
                 lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2+_u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+_u_rov1['u_7']**2+_u_rov1['u_8']**2)*0.01 
 
         #_x['phi']**2 + _x['theta']**2 + _x['psi']**2 +

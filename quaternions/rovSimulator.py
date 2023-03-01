@@ -41,7 +41,7 @@ from rovController import *
 modelRov1 = MyROVModel()
 modelRov2 = MyROVModel()
 
-mpc1 = MyController(modelRov1,modelRov2,2,[10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+mpc1 = MyController(modelRov1,modelRov2,2,[10,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0])
 mpc2 = MyController(modelRov2,modelRov1, 2)
 estimator1 = do_mpc.estimator.StateFeedback(modelRov1.model)
 estimator2 = do_mpc.estimator.StateFeedback(modelRov1.model)
@@ -148,7 +148,7 @@ plot2 = []
 u0_1 = np.zeros((8,1))
 u0_2 = np.zeros((8,1))
 j = 0
-for i in range(100):
+for i in range(200):
     print(i)
     j += 0
     u0_1 = mpc1.mpc.make_step(x0_1)
@@ -176,16 +176,15 @@ for i in range(100):
     mpc2.phi_setp = x0_1[3]
     mpc2.theta_setp = x0_1[4]
     mpc2.psi_setp = x0_1[5]
-    #print(x0_1)
-    rot = Rotation.from_quat(x0_1[4:8].reshape(1,-1))
-    x0_1_euler = x0_1
+
+    x0_1_euler = np.copy(x0_1)
+    rot = Rotation.from_quat(x0_1_euler[4:8].reshape(1,-1))
     x0_1_euler[4:7] = rot.as_euler('xyz').reshape(-1,1)
-    #print(x0_1_euler)
     x0_1_euler = np.delete(x0_1_euler, 8, 0)
 
 
-    rot = Rotation.from_quat(x0_2[4:8].reshape(1,-1))
-    x0_2_euler = x0_2
+    x0_2_euler = np.copy(x0_2)
+    rot = Rotation.from_quat(x0_2_euler[4:8].reshape(1,-1))
     x0_2_euler[4:7] = rot.as_euler('xyz').reshape(-1,1)
     #print(x0_1_euler)
     x0_2_euler = np.delete(x0_2_euler, 8, 0)
@@ -196,20 +195,20 @@ for i in range(100):
 
 
 ######################### DETTE ER FOR PLOT ########################################
-#for i in range(len(plot1)):
-#    plot1[i] = [float(plot1[i][j]) for j in range(len(plot1[i]))]
-#data = [list(plot1[i]) for i in range(len(plot1))]
-#df = pd.DataFrame(data, columns=['x','y','z','phi','theta','psi','u','v','w','p','q','r'])
-#df.to_csv('data1.csv', index=False)
-#print(df)
-######################################################################################
-#for i in range(len(plot2)):
-#    plot2[i] = [float(plot2[i][j]) for j in range(len(plot2[i]))]
-#data = [list(plot2[i]) for i in range(len(plot2))]
-#df = pd.DataFrame(data, columns=['x','y','z','phi','theta','psi','u','v','w','p','q','r'])
-#df.to_csv('data2.csv', index=False)
-#print(df)
-####################################################################################
+for i in range(len(plot1)):
+    plot1[i] = [float(plot1[i][j]) for j in range(len(plot1[i]))]
+data = [list(plot1[i]) for i in range(len(plot1))]
+df = pd.DataFrame(data, columns=['x','y','z','phi','theta','psi','u','v','w','p','q','r'])
+df.to_csv('data1.csv', index=False)
+print(df)
+#####################################################################################
+for i in range(len(plot2)):
+    plot2[i] = [float(plot2[i][j]) for j in range(len(plot2[i]))]
+data = [list(plot2[i]) for i in range(len(plot2))]
+df = pd.DataFrame(data, columns=['x','y','z','phi','theta','psi','u','v','w','p','q','r'])
+df.to_csv('data2.csv', index=False)
+print(df)
+###################################################################################
 
 
 
