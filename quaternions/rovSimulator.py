@@ -37,6 +37,30 @@ from rovController import *
 #    e_3 = cr * cp * sy - sr * sp * cy
 #    return [q_0, e_1, e_2, e_3]
 
+def sine_wave(t):
+    z = 1*np.sin(np.pi*t/10)
+    x = t/10
+    y = 0
+    return x,y,z 
+
+#Creates parameters for cubic polynomial path
+def trajectory_parameter_generation(x0,dx0,x1,dx1, t0, t1):
+    
+    A =np.array([[1,t0, t0**2, t0**3],
+                [0, 1, 2*t0, 3*t0**2],
+                [1, t1, t1**2, t1**3],
+                [0, 1, 2*t1, 3*t1**2]])
+
+    #b = np.array = ([a0,a1,a2,a3]).reshape(-1,1)
+    y = np.array([x0,dx0,x1,dx1]).reshape(-1,1)
+    b = np.linalg.inv(A)@y
+    return b
+#Takes in the parameters as a list, and time t, returns the setpoint at that given time.
+def trajectory_generation(a,t):
+
+    qt = a[0] + a[1]*t + a[2]*t**2 + a[3]*t**3
+    return qt
+
 
 modelRov1 = MyROVModel()
 modelRov2 = MyROVModel()
@@ -148,34 +172,34 @@ plot2 = []
 u0_1 = np.zeros((8,1))
 u0_2 = np.zeros((8,1))
 j = 0
-for i in range(200):
-    print(i)
-    j += 0
+for i in range(100):
+    print('###############################' + i + '################################')
+
     u0_1 = mpc1.mpc.make_step(x0_1)
     u0_2 = mpc2.mpc.make_step(x0_2)
 
     y_next_1 = simulator1.make_step(u0_1)
     y_next_2 = simulator2.make_step(u0_2)
     
-    
-
-
     x0_1 = estimator1.make_step(y_next_1)
     x0_2 = estimator2.make_step(y_next_2)
-    if (j == 50):
-        mpc1.x_setp += 5
-    if (j  == 100):
-        mpc1.y_setp += 5
-    if (j == 150):
-        mpc1.x_setp -= 5
-    if (j == 200):
-        mpc1.y_setp -= 5
-    mpc2.x_setp = x0_1[0]
-    mpc2.y_setp = x0_1[1]
-    mpc2.z_setp = x0_1[2]
-    mpc2.phi_setp = x0_1[3]
-    mpc2.theta_setp = x0_1[4]
-    mpc2.psi_setp = x0_1[5]
+   
+    if(i == 0): #creates the parameters for the cubic polynomials
+        cubic_path_params_x = trajectory_parameter_generation(x0_1[0],x0_1[7],2,0,i,i+100)
+        cubic_path_params_y = trajectory_parameter_generation(x0_1[1],x0_1[8],5,0,i,i+100)
+        cubic_path_params_z = trajectory_parameter_generation(x0_1[2],x0_1[9],-2,0,i,i+100)
+
+    mpc1.x_setp = trajectory_generation(cubic_path_params_x,i)
+    mpc1.y_setp = trajectory_generation(cubic_path_params_y,i)
+    mpc1.z_setp = trajectory_generation(cubic_path_params_z,i)
+    
+
+   # mpc2.x_setp = x0_1[0]
+   # mpc2.y_setp = x0_1[1]
+   # mpc2.z_setp = x0_1[2]
+   # mpc2.phi_setp = x0_1[3]
+   # mpc2.theta_setp = x0_1[4]
+   # mpc2.psi_setp = x0_1[5]
 
     x0_1_euler = np.copy(x0_1)
     rot = Rotation.from_quat(x0_1_euler[4:8].reshape(1,-1))
