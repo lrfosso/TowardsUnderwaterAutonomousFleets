@@ -24,7 +24,7 @@ import pandas as pd
 ############# Settings ############################################
 csv_file_1_name = "data1"           #Name of csv file 1 without .csv
 csv_file_2_name = "data2"           #Name of csv file 2 without .csv
-saving_option = True               #True for saving animation as GIF
+saving_option = False               #True for saving animation as GIF
 save_name = "3D_Simulator_test"     #Name of saved file without .gif
 fps_value = 30                      #Frames per second of GIF
 
