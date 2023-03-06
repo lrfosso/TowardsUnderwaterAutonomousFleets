@@ -56,8 +56,8 @@ simulator2.setup()
 
 #x0 = np.array([20, -11.4, -1.5, 10, 20, 20, -10, 1,1,2,3,4]).reshape(-1,1)
 #               x,y,z,phi(roll 3),theta(pitch 4),psi(yaw 5),u,v,w,p,q,r
-x0_1 = np.array([2, 3, 2, 0, 1/2, 0, 0, 0,0,0,0,0]).reshape(-1,1)
-x0_2 = np.array([1, 4, -1, 0, 2/2, 0, 0, 0,0,0,0,0]).reshape(-1,1)
+x0_1 = np.array([0, 0, 0, 0, 1/2, 0, 0, 0,0,0,0,0]).reshape(-1,1)
+x0_2 = np.array([2, 0, 0, 0, 2/2, 0, 0, 0,0,0,0,0]).reshape(-1,1)
 
 mpc1.x0 = x0_1
 mpc2.x0 = x0_2
@@ -123,8 +123,10 @@ setpoint2 = [[],[],[]]
 u0_1 = np.zeros((8,1))
 u0_2 = np.zeros((8,1))
 j = 0
-for i in range(300):
-    print("###############################################",i,"###############################################")
+n_sims = 400
+for i in range(n_sims):
+    for i in range(30):
+        print("\t\t\t\t\t\t\t\t\t\t\t\t{}/{}".format(j,n_sims))
     j += 1
 
     u0_1 = mpc1.mpc.make_step(x0_1)
@@ -146,20 +148,16 @@ for i in range(300):
     mpc2.z_2 = x0_1[2]
 
     if (j == 100):
-        mpc1.x_setp += 5
-        mpc2.x_setp += 5
+        mpc1.x_setp += 3
+        mpc2.x_setp += 3
 
     if (j  == 200):
-        mpc1.y_setp += 5
-        mpc2.y_setp += 5
+        mpc1.x_setp += 2
+        mpc2.x_setp += 2
     if (j == 300):
-        mpc1.x_setp -= 10
-        mpc2.x_setp -= 10
-        mpc1.y_setp -= 10
-        mpc2.y_setp -= 10
+        mpc1.y_setp -= 3
+        mpc2.y_setp -= 3
     if (j == 350):
-        mpc1.y_setp -= 5
-        mpc2.y_setp -= 5
         mpc1.x_setp += 5
         mpc2.x_setp += 5
 
