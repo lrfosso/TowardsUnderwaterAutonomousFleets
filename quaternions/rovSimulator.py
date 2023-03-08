@@ -61,7 +61,29 @@ def trajectory_generation(a,t):
     qt = a[0] + a[1]*t + a[2]*t**2 + a[3]*t**3
     return qt
 
+def init_path():
+    x=[]
+    y=[]
+    z=[]
+    u=[]
+    v=[]
+    w=[]
+    t=[]
+    n_waypoints = int(input("Enter number of waypoints: "))
+    for i in range(n_waypoints):
+        inp = input("enter waypoint " +str(i+1)+": x y z u v w t: ")
+        inp = list(map(int, inp.split()))
 
+        x.append(inp[0])
+        y.append(inp[1])
+        z.append(inp[2])
+        u.append(inp[3])
+        v.append(inp[4])
+        w.append(inp[5])
+        t.append(inp[6])
+
+    return x,y,z,u,v,w,t    
+        
 modelRov1 = MyROVModel()
 modelRov2 = MyROVModel()
 
@@ -168,13 +190,40 @@ ax[2].set_ylabel('Angle [rad]')
 plot1 = []
 plot2 = []
 
-
 u0_1 = np.zeros((8,1))
 u0_2 = np.zeros((8,1))
-j = 0
-for i in range(100):
-    print('###############################' + i + '################################')
 
+r = init_path()
+
+
+x_waypoints = []
+y_waypoints = []
+z_waypoints = []
+u_waypoints = []
+v_waypoints = []
+w_waypoints = []
+t_waypoints = []
+
+#x_waypoints.append(x0_1[0][0])
+#y_waypoints.append(x0_1[1][1])
+#z_waypoints.append(x0_1[2][2])
+#u_waypoints.append(x0_1[7][7])
+#v_waypoints.append(x0_1[8][8])
+#w_waypoints.append(x0_1[9][9])
+#t_waypoints.append(0)
+
+x_waypoints=r[0]
+y_waypoints=r[1]
+z_waypoints=r[2]
+u_waypoints=r[3]
+v_waypoints=r[4]
+w_waypoints=r[5]
+t_waypoints=r[6]
+j = 0
+print(x_waypoints)
+for i in range(300):
+    print('###############################' + str(i) + '################################')
+    
     u0_1 = mpc1.mpc.make_step(x0_1)
     u0_2 = mpc2.mpc.make_step(x0_2)
 
@@ -183,16 +232,17 @@ for i in range(100):
     
     x0_1 = estimator1.make_step(y_next_1)
     x0_2 = estimator2.make_step(y_next_2)
-   
-    if(i == 0): #creates the parameters for the cubic polynomials
-        cubic_path_params_x = trajectory_parameter_generation(x0_1[0],x0_1[7],2,0,i,i+100)
-        cubic_path_params_y = trajectory_parameter_generation(x0_1[1],x0_1[8],5,0,i,i+100)
-        cubic_path_params_z = trajectory_parameter_generation(x0_1[2],x0_1[9],-2,0,i,i+100)
 
+
+    if(i == t_waypoints[j] or i == 0):  
+        cubic_path_params_x = trajectory_parameter_generation(x0_1[0],x0_1[7],x_waypoints[j],u_waypoints[j],i,t_waypoints[j])
+        cubic_path_params_y = trajectory_parameter_generation(x0_1[1],x0_1[8],y_waypoints[j],v_waypoints[j],i,t_waypoints[j])
+        cubic_path_params_z = trajectory_parameter_generation(x0_1[2],x0_1[9],z_waypoints[j],w_waypoints[j],i,t_waypoints[j])
+        j+=1
+    
     mpc1.x_setp = trajectory_generation(cubic_path_params_x,i)
     mpc1.y_setp = trajectory_generation(cubic_path_params_y,i)
     mpc1.z_setp = trajectory_generation(cubic_path_params_z,i)
-    
 
    # mpc2.x_setp = x0_1[0]
    # mpc2.y_setp = x0_1[1]
@@ -200,18 +250,18 @@ for i in range(100):
    # mpc2.phi_setp = x0_1[3]
    # mpc2.theta_setp = x0_1[4]
    # mpc2.psi_setp = x0_1[5]
-
+    
+    #print(x0_1[])
     x0_1_euler = np.copy(x0_1)
-    rot = Rotation.from_quat(x0_1_euler[4:8].reshape(1,-1))
-    x0_1_euler[4:7] = rot.as_euler('xyz').reshape(-1,1)
-    x0_1_euler = np.delete(x0_1_euler, 8, 0)
+    rot = Rotation.from_quat(x0_1_euler[3:7].reshape(1,-1))
+    x0_1_euler[3:6] = rot.as_euler('xyz').reshape(-1,1)
+    x0_1_euler = np.delete(x0_1_euler, 6, 0)
 
 
     x0_2_euler = np.copy(x0_2)
-    rot = Rotation.from_quat(x0_2_euler[4:8].reshape(1,-1))
-    x0_2_euler[4:7] = rot.as_euler('xyz').reshape(-1,1)
-    #print(x0_1_euler)
-    x0_2_euler = np.delete(x0_2_euler, 8, 0)
+    rot = Rotation.from_quat(x0_2_euler[3:7].reshape(1,-1))
+    x0_2_euler[3:6] = rot.as_euler('xyz').reshape(-1,1)
+    x0_2_euler = np.delete(x0_2_euler, 6, 0)
 
     
     plot1.append(x0_1_euler)
