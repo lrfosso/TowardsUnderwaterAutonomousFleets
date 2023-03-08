@@ -123,7 +123,7 @@ setpoint2 = [[],[],[]]
 u0_1 = np.zeros((8,1))
 u0_2 = np.zeros((8,1))
 j = 0
-n_sims = 400
+n_sims = 100
 for i in range(n_sims):
     for i in range(30):
         print("\t\t\t\t\t\t\t\t\t\t\t\t{}/{}".format(j,n_sims))

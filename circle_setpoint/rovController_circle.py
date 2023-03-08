@@ -1,4 +1,5 @@
 import do_mpc
+from casadi import *
 class MyController():
 
 
