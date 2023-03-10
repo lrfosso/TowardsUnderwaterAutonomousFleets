@@ -40,8 +40,8 @@ class MyController():
                 mterm = (_x_rov1['x'] + 2 - _tvp_rov1['x_sp'])**2 + (_x_rov1['y'] + 0 - _tvp_rov1['y_sp'])**2 + (_x_rov1['z'] + 2 - _tvp_rov1['z_sp'])**2 + (_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 + (_x_rov1['theta'] - _tvp_rov1['theta_sp'])**2 +(_x_rov1['psi']  - _tvp_rov1['psi_sp'])**2  
                 lterm = (_x_rov1['x'] + 2 - _tvp_rov1['x_sp'])**2 + (_x_rov1['y'] + 0 - _tvp_rov1['y_sp'])**2 + (_x_rov1['z'] + 2 - _tvp_rov1['z_sp'])**2 +(_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 + (_x_rov1['theta']  - _tvp_rov1['theta_sp'])**2 +(_x_rov1['psi']  - _tvp_rov1['psi_sp'])**2
             case 2:
-                mterm = (1.5*(_x_rov1['x']+5)**2 + 1.5*(_x_rov1['y']-3)**2 +  2*(_x_rov1['z']-3)**2 +1.1*((_x_rov1['q_0']-1)**2 +(_x_rov1['e_1'])**2  + (_x_rov1['e_2'])**2  + (_x_rov1['e_3'])**2))
-                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2+_u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+_u_rov1['u_7']**2+_u_rov1['u_8']**2)*0.1
+                mterm = (1.8*(_x_rov1['x']+5)**2 + 3*(_x_rov1['y']+2)**2 +  2*(_x_rov1['z']-2)**2 +0.75*((_x_rov1['q_0']-1)**2 +(_x_rov1['e_1'])**2  + (_x_rov1['e_2'])**2  + (_x_rov1['e_3'])**2))
+                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2+_u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+_u_rov1['u_7']**2+_u_rov1['u_8']**2)*0.05
 
         #_x['phi']**2 + _x['theta']**2 + _x['psi']**2 +
         #_x['phi']**2 + _x['theta']**2 + _x['psi']**2 +
@@ -49,38 +49,38 @@ class MyController():
         
         self.mpc.set_tvp_fun(self.tvp_fun)
         self.mpc.set_rterm(
-                u_1 = 3,
-                u_2 = 3,
-                u_3 = 3,
-                u_4 = 3,
-                u_5 = 3,
-                u_6 = 3,
-                u_7 = 3,
-                u_8 = 3
+                u_1 = 0.5,
+                u_2 = 0.5,
+                u_3 = 0.5,
+                u_4 = 0.5,
+                u_5 = 0.5,
+                u_6 = 0.5,
+                u_7 = 0.5,
+                u_8 = 0.5
                 )
         
         
         
         self.mpc.set_objective(mterm=mterm,lterm=lterm)
         
-        self.mpc.bounds['lower', '_u', 'u_1'] = - 35
-        self.mpc.bounds['lower', '_u', 'u_2'] = - 35
-        self.mpc.bounds['lower', '_u', 'u_3'] = - 35
-        self.mpc.bounds['lower', '_u', 'u_4'] = - 35
-        self.mpc.bounds['lower', '_u', 'u_5'] = - 35
-        self.mpc.bounds['lower', '_u', 'u_6'] = - 35
-        self.mpc.bounds['lower', '_u', 'u_7'] = - 35
-        self.mpc.bounds['lower', '_u', 'u_8'] = - 35
+        self.mpc.bounds['lower', '_u', 'u_1'] = - 45
+        self.mpc.bounds['lower', '_u', 'u_2'] = - 45
+        self.mpc.bounds['lower', '_u', 'u_3'] = - 45
+        self.mpc.bounds['lower', '_u', 'u_4'] = - 45
+        self.mpc.bounds['lower', '_u', 'u_5'] = - 45
+        self.mpc.bounds['lower', '_u', 'u_6'] = - 45
+        self.mpc.bounds['lower', '_u', 'u_7'] = - 45
+        self.mpc.bounds['lower', '_u', 'u_8'] = - 45
         
         
-        self.mpc.bounds['upper', '_u', 'u_1'] =  35
-        self.mpc.bounds['upper', '_u', 'u_2'] =  35
-        self.mpc.bounds['upper', '_u', 'u_3'] =  35
-        self.mpc.bounds['upper', '_u', 'u_4'] =  35
-        self.mpc.bounds['upper', '_u', 'u_5'] =  35
-        self.mpc.bounds['upper', '_u', 'u_6'] =  35
-        self.mpc.bounds['upper', '_u', 'u_7'] =  35
-        self.mpc.bounds['upper', '_u', 'u_8'] =  35
+        self.mpc.bounds['upper', '_u', 'u_1'] =  45
+        self.mpc.bounds['upper', '_u', 'u_2'] =  45
+        self.mpc.bounds['upper', '_u', 'u_3'] =  45
+        self.mpc.bounds['upper', '_u', 'u_4'] =  45
+        self.mpc.bounds['upper', '_u', 'u_5'] =  45
+        self.mpc.bounds['upper', '_u', 'u_6'] =  45
+        self.mpc.bounds['upper', '_u', 'u_7'] =  45
+        self.mpc.bounds['upper', '_u', 'u_8'] =  45
         
         
         self.mpc.setup()
