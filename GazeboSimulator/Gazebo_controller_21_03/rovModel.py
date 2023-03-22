@@ -96,7 +96,10 @@ class MyROVModel():
         q_0_sp = self.model.set_variable('_tvp', 'q_0_sp')
         e_1_sp = self.model.set_variable('_tvp', 'e_1_sp')
         e_2_sp = self.model.set_variable('_tvp', 'e_2_sp')        
-        e_3_sp = self.model.set_variable('_tvp', 'e_3_sp')        
+        e_3_sp = self.model.set_variable('_tvp', 'e_3_sp')
+        x_2 = self.model.set_variable('_tvp', 'x_2') 
+        y_2 = self.model.set_variable('_tvp', 'y_2') 
+        z_2 = self.model.set_variable('_tvp', 'z_2')         
         
         
         
