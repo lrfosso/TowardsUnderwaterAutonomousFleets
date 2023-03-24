@@ -2,7 +2,7 @@ import do_mpc
 class MyController():
 
 
-    def __init__(self, rovModel1, rovModel2, trackMode,  setPoints = [0,0,0,1,0,0,0,0,0,0,0,0,0]):
+    def __init__(self, rovModel1, rovModel2, trackMode,  setPoints = [0,0,0,1,0,0,0,0,0,0,0,0,0], nl_setting=True):
         self.x_setp = setPoints[0]
         self.y_setp = setPoints[1]
         self.z_setp = setPoints[2]
@@ -10,6 +10,10 @@ class MyController():
         self.e_1_setp = setPoints[4]
         self.e_2_setp = setPoints[5]
         self.e_3_setp = setPoints[6]
+
+        self.x_2 = 0 
+        self.y_2 = 0
+        self.z_2 = 0
 
         self.mpc = do_mpc.controller.MPC(rovModel1.model)
         
@@ -42,7 +46,15 @@ class MyController():
                 mterm = (_x_rov1['x'] + 2 - _tvp_rov1['x_sp'])**2 + (_x_rov1['y'] + 0 - _tvp_rov1['y_sp'])**2 + (_x_rov1['z'] + 2 - _tvp_rov1['z_sp'])**2 + (_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 + (_x_rov1['theta'] - _tvp_rov1['theta_sp'])**2 +(_x_rov1['psi']  - _tvp_rov1['psi_sp'])**2  
                 lterm = (_x_rov1['x'] + 2 - _tvp_rov1['x_sp'])**2 + (_x_rov1['y'] + 0 - _tvp_rov1['y_sp'])**2 + (_x_rov1['z'] + 2 - _tvp_rov1['z_sp'])**2 +(_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 + (_x_rov1['theta']  - _tvp_rov1['theta_sp'])**2 +(_x_rov1['psi']  - _tvp_rov1['psi_sp'])**2
             case 2:
-                mterm = (((_x_rov1['x'] - _tvp_rov1['x_sp'])**2 + (_x_rov1['y'] - _tvp_rov1['y_sp'])**2 +  (_x_rov1['z'] - _tvp_rov1['z_sp'])**2)*10 +((_x_rov1['q_0']-1)**2 +(_x_rov1['e_1'])**2  + (_x_rov1['e_2'])**2  + (_x_rov1['e_3'])**2))*0.01
+                mterm = (((_x_rov1['x'] - _tvp_rov1['x_sp'])**2 + (_x_rov1['y'] - _tvp_rov1['y_sp'])**2 +  (_x_rov1['z'] - _tvp_rov1['z_sp'])**2)*10 
+                +1*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
+                +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2))
+                #+200*(-
+                #(((1-(2*_x_rov1['e_2']**2))+(2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x']))
+                #+ (((2*_x_rov1['e_1']*_x_rov1['e_2'])+(2*_x_rov1['e_3']*_x_rov1['q_0']))*(_tvp_rov1['y_2']-_x_rov1['y']))
+                #+ (((2*_x_rov1['e_1']*_x_rov1['e_3'])-(2*_x_rov1['e_2']*_x_rov1['q_0']))*(_tvp_rov1['z_2']-_x_rov1['z'])))**2
                 lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2+_u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+_u_rov1['u_7']**2+_u_rov1['u_8']**2)*0.01 
 
         #_x['phi']**2 + _x['theta']**2 + _x['psi']**2 +
@@ -61,7 +73,34 @@ class MyController():
                 u_8 = 1
                 )
         
+        #self.mpc.set_nl_cons("FOV", 
+        #(-((_tvp_rov1['x_2']-_x_rov1['x'])**2 + (_tvp_rov1['y_2']-_x_rov1['y'])**2 + (_tvp_rov1['z_2']-_x_rov1['z'])**2)**0.5
+        #-(((1-2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2)*(_tvp_rov1['x_2']-_x_rov1['x'])) 
+        #+ (2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
+        #+ (2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z']))
+        #)
         
+        #self.mpc.set_nl_cons("FOV", (((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2)*(_tvp_rov1['x_2']-_x_rov1['x'])) 
+        #+ (2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
+        #+ (2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z']))), 
+        #0, 
+        #soft_constraint=False)
+
+        # (-((1-(2*e2ref**2+2*e3ref**2))*(x2-x1)) 
+        # + (2*e1ref*e2ref+2*e3ref*q0ref)*(y2-y1)
+        # + (2*e1ref*e3ref-2*e2ref*q0ref)*(z2-z1)
+        # )
+        #if(nl_setting):
+        #    self.mpc.set_nl_cons("FOV", 
+        #    (-_tvp_rov1['x_2']), 0 ,penalty_term_cons=1000)
+        #self.mpc.set_nl_cons("FOV", 
+        #(-_x_rov1['x'])
+        #, 0)
+        self.mpc.set_nl_cons("FOV", 
+        (-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
+        +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
+        +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
+        , 0)
         
         self.mpc.set_objective(mterm=mterm,lterm=lterm)
         
@@ -97,6 +136,9 @@ class MyController():
             tvp_template['_tvp',k,'e_1_sp'] =  self.e_1_setp
             tvp_template['_tvp',k,'e_2_sp'] =  self.e_2_setp
             tvp_template['_tvp',k,'e_3_sp'] =  self.e_3_setp
+            tvp_template['_tvp',k,'x_2'] =  self.x_2
+            tvp_template['_tvp',k,'y_2'] =  self.y_2
+            tvp_template['_tvp',k,'z_2'] =  self.z_2
     
         return tvp_template
 

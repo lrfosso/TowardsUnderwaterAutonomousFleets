@@ -116,6 +116,6 @@ graph2, = ax.plot(data2.x, data2.y, data2.z, linestyle="", marker="o", color="gr
 
 ani = animation.FuncAnimation(fig, update_graph, len(t), 
                                interval=10, blit=True)
-ani.save('myanimation.gif', writer='imagemagick', fps=20)
+#ani.save('myanimation.gif', writer='imagemagick', fps=20)
 plt.show()
 

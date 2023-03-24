@@ -82,13 +82,13 @@ class MyROVModel():
         #input
         u_1 = self.model.set_variable('_u', 'u_1')
         u_2 = self.model.set_variable('_u', 'u_2')
-        u_3 = self.model.set_variable('_u', 'u_3')
-        u_4 = self.model.set_variable('_u', 'u_4')
+        u_3 = -self.model.set_variable('_u', 'u_3')
+        u_4 = -self.model.set_variable('_u', 'u_4')
         u_5 = self.model.set_variable('_u', 'u_5')
         u_6 = self.model.set_variable('_u', 'u_6')
         u_7 = self.model.set_variable('_u', 'u_7')
         u_8 = self.model.set_variable('_u', 'u_8')
-        
+       #u5 og u8 hadde ogsaa minusfortegn 
         
         x_sp = self.model.set_variable('_tvp', 'x_sp')
         y_sp = self.model.set_variable('_tvp', 'y_sp')
@@ -96,18 +96,22 @@ class MyROVModel():
         q_0_sp = self.model.set_variable('_tvp', 'q_0_sp')
         e_1_sp = self.model.set_variable('_tvp', 'e_1_sp')
         e_2_sp = self.model.set_variable('_tvp', 'e_2_sp')        
-        e_3_sp = self.model.set_variable('_tvp', 'e_3_sp')        
+        e_3_sp = self.model.set_variable('_tvp', 'e_3_sp')
+
+        x_2 = self.model.set_variable('_tvp', 'x_2')
+        y_2 = self.model.set_variable('_tvp', 'y_2')
+        z_2 = self.model.set_variable('_tvp', 'z_2')      
         
         
         
         
-        self.model.set_rhs('x',(1 - 2*(e_2**2 + e_3**2))*u + 2*(e_1*e_2 - e_3*q_0)*v + 2*(e_1*e_3 - e_2*q_0)*w )
-        self.model.set_rhs('y', 2*(e_1*e_2 - e_3*q_0)*u + (1 - 2*(e_1**2 + e_3**2))*v + 2*(e_2*e_3 - e_1*q_0)*w)
-        self.model.set_rhs('z', 2*(e_1*e_3 - e_2*q_0)*u + 2*(e_2*e_3 - e_1*q_0)*v + (1 - 2*(e_1**2 + e_2**2))*w)
+        self.model.set_rhs('x',(1 - 2*(e_2**2 + e_3**2))*u + 2*(e_1*e_2 - e_3*q_0)*v + 2*(e_1*e_3 + e_2*q_0)*w )
+        self.model.set_rhs('y', 2*(e_1*e_2 + e_3*q_0)*u + (1 - 2*(e_1**2 + e_3**2))*v + 2*(e_2*e_3 - e_1*q_0)*w)
+        self.model.set_rhs('z', 2*(e_1*e_3 - e_2*q_0)*u + 2*(e_2*e_3 + e_1*q_0)*v + (1 - 2*(e_1**2 + e_2**2))*w)
         
         self.model.set_rhs('q_0', 0.5*(-e_1*p - e_2*q - e_3*r))
         self.model.set_rhs('e_1', 0.5*(q_0*p - e_3*q + e_2*r))
-        self.model.set_rhs('e_2', 0.5*(e_2*p + q_0*q - e_1*r))
+        self.model.set_rhs('e_2', 0.5*(e_3*p + q_0*q - e_1*r))
         self.model.set_rhs('e_3', 0.5*(-e_2*p + e_1*q + q_0*r))
 
         self.model.set_rhs('p', p_dot)
@@ -132,13 +136,21 @@ class MyROVModel():
         g_6 = 0
         
         #tau forces
+        #tau_1 = (0.707*u_1 + 0.707*u_2-0.707*u_3-0.707*u_4)
+        #tau_2 =(-0.707*u_1 + 0.707*u_2-0.707*u_3 + 0.707*u_4)
+        #tau_3 =( u_5 + u_6 + u_7 + u_8)
+        #tau_4 =(0.06*u_1 - 0.06*u_2 + 0.06*u_3 - 0.06*u_4 -0.218*u_5 - 0.218*u_6 + 0.218*u_7 + 0.218*u_8)
+        #tau_5 =(0.06*u_1 + 0.06*u_2 - 0.06*u_3 - 0.06*u_4 + 0.120*u_5 - 0.120*u_6 + 0.120*u_7 - 0.120*u_8)
+        #tau_6 =(-0.1888*u_1 + 0.1888*u_2 + 0.1888*u_3 - 0.1888*u_4)
+        
+
         tau_1 = (0.707*u_1 + 0.707*u_2-0.707*u_3-0.707*u_4)
         tau_2 =(-0.707*u_1 + 0.707*u_2-0.707*u_3 + 0.707*u_4)
         tau_3 =( -u_5 + u_6 + u_7 - u_8)
         tau_4 =(0.06*u_1 - 0.06*u_2 + 0.06*u_3 - 0.06*u_4 -0.218*u_5 - 0.218*u_6 + 0.218*u_7 + 0.218*u_8)
         tau_5 =(0.06*u_1 + 0.06*u_2 - 0.06*u_3 - 0.06*u_4 + 0.120*u_5 - 0.120*u_6 + 0.120*u_7 - 0.120*u_8)
         tau_6 =(-0.1888*u_1 + 0.1888*u_2 + 0.1888*u_3 - 0.1888*u_4)
-        
+
         #M_rb
         M_rb_1 = m*(u_dot + z_g*q_dot)
         M_rb_2 = m*(v_dot - z_g*p_dot)
@@ -210,4 +222,3 @@ class MyROVModel():
         self.model.set_alg('dynamics',dynamics)
         
         self.model.setup()
-
