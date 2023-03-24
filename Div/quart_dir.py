@@ -71,6 +71,13 @@ def vector_between_rovs(x1,y1,z1,x2,y2,z2):
                 # self.mpc.set_nl_cons("FOV", 
         #(-_x_rov1['x'])
         #, 0)"""
+"""
+self.mpc.set_nl_cons("FOV", 
+        (-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
+        +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
+        +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
+        , 0)"
+"""
 
 ### VAR ###
 x1 = 0
