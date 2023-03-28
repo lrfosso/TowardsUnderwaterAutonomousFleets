@@ -28,9 +28,13 @@ class MyController():
         _x_rov1 = rovModel1.model.x
         _u_rov1  = rovModel1.model.u
         _tvp_rov1 = rovModel1.model.tvp
-
+        #mterm = ((_x['x']-5)**2+ (_x['y']-5)**2+(_x['z']-5)**2 + (_x['u']**2  + _x['v']**2+ _x['w']**2)*0.01)
+        #lterm = ((_x['x']-5)**2+ (_x['y']-5)**2+(_x['z']-5)**2 + (_x['u']**2  + _x['v']**2+ _x['w']**2)*0.01
+        #       + (u_1**2+u_2**2+u_3**2+u_4**2+u_5**2 + u_6**2+u_7**2+u_8**2)*0.001)
+        #mterm = _x['x']**2 + _x['y']**2 + _x['z']**2 + (_x['phi']**2 + _x['theta']**2 + _x['psi']**2)*0.1
+        #lterm = _x['x']**2 + _x['y']**2 + _x['z']**2 + (_x['phi']**2 + _x['theta']**2 + _x['psi']**2)*0.1
         radius = 2
-        length = 3.5
+        length = 3
 
         match trackMode:
             case 0:
@@ -49,8 +53,8 @@ class MyController():
                 mterm = (1.8*(_x_rov1['x'] - _tvp_rov1['x_sp'])**2 + 3*(_x_rov1['y'] - _tvp_rov1['y_sp'])**2 +  2*(_x_rov1['z'] - _tvp_rov1['z_sp'])**2 +2*((_x_rov1['q_0']**2- 1) + (_x_rov1['e_1'] )**2  + (_x_rov1['e_2'] )**2  + (_x_rov1['e_3'] )**2))
                 lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2+_u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+_u_rov1['u_7']**2+_u_rov1['u_8']**2)*0.03
             case 4:
-                mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius**2)**2 +
-                #2*((((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)-length**2)**2) +
+                mterm = (3*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius**2)**2 +
+                2*((((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)-length**2)**2) +
                 12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
                 + 50*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
                 +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
@@ -74,26 +78,14 @@ class MyController():
         #_x['phi']**2 + _x['theta']**2 + _x['psi']**2 +
         tvp_template = self.mpc.get_tvp_template()
         FOV_range_deg = 90
-        FOV_range_soft_deg = 45
         #self.mpc.set_nl_cons("Distance", 
-        #(length**2-((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)),
-        #    ub=0, soft_constraint=True, penalty_term_cons=100, )
-        self.mpc.set_nl_cons("Distance", 
-         (length**2-((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)), 
-         ub=0, soft_constraint=True, penalty_term_cons=30)
-
-        #self.mpc.set_nl_cons("FOV x",  ##Dette er hard constraint
-        #    2*(np.cos((FOV_range_deg/180)*3.14)*length-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
-        #    +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
-        #    +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
-        #    , 0)
-        
+        #(length**2-((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2)),
+        #    0)
         self.mpc.set_nl_cons("FOV x", 
-            2*(np.cos((FOV_range_soft_deg/180)*3.14)*length-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
+            2*(np.cos((FOV_range_deg/180)*3.14)*length-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
             +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
             +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
-            , ub=0, soft_constraint=True, penalty_term_cons=20
-            )
+            , 0)
         #self.mpc.set_nl_cons("FOV -z",
         #    2*(np.cos((FOV_range_deg/180)*3.14)*length-((-2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['x_2']-_x_rov1['x'])
         #    +(-2*(_x_rov1['e_2']*_x_rov1['e_3']-_x_rov1['e_1']*_x_rov1['q_0']))*(_tvp_rov1['y_2']-_x_rov1['y'])

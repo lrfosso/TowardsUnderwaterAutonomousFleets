@@ -2,6 +2,7 @@ import sys
 import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
+#sys.path.append("/home/tor/bluerovSim/bluerov2_garden/install/mpc_controller/lib/python3.10/site-packages/mpc_controller")
 ## 
 #tor@PC:~/bluerovSim/ver0803/bluerov2_garden/src$ ls
 
@@ -21,7 +22,7 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Vector3
 from module_rovModel import *
 from module_rovController import *
-
+from time import sleep
 
 # ########################################## MULTI LAUNCH + pubsub kode fra 26/03 ############################################################
 class BluerovPubSubNode(Node):
@@ -45,15 +46,13 @@ class BluerovPubSubNode(Node):
     def __init__(self):
         self.ready = False
         super().__init__('bluerov_pubsub')
+        #self.declare_parameter('model_name')
+        #self.rov_name = self.get_parameter('model_name').get_parameter_value().string_value
 
-        self.declare_parameter('main_id')
-        self.declare_parameter('fleet_quantity')
-        self.main_id = self.get_parameter('main_id').get_parameter_value().string_value
-        self.fleet_quantity = self.get_parameter('fleet_quantity').get_parameter_value().string_value
-        
-        for id in range(int(self.fleet_quantity)):
-            if int(self.main_id) != id+2:
-                self.fleet_id = str(id+2)
+        self.declare_parameter('id')
+        self.declare_parameter('fleets-id')
+        self.main_id = self.get_parameter('id').get_parameter_value().string_value
+        self.fleet_id = self.get_parameter('fleets-id').get_parameter_value().string_value
 
 
     #Init code
@@ -66,6 +65,13 @@ class BluerovPubSubNode(Node):
         self.x0_1 = np.array([0, 0, 0, 0, 0, 0, 0, 0,0,0,0,0,0]).reshape(-1,1)
         self.mpc1.x0 = self.x0_1
         self.i = 0
+
+
+        #self.estimator1 = do_mpc.estimator.StateFeedback(self.modelRov1.model)
+        #self.simulator1 = do_mpc.simulator.Simulator(self.modelRov1.model)
+        #self.tvp_template1 = self.simulator1.get_tvp_template()
+        
+        #self.simulator1.set_tvp_fun(self.tvp_template1)
 
         self.mpc1.mpc.set_initial_guess()
 
@@ -82,12 +88,17 @@ class BluerovPubSubNode(Node):
         self.y_sp.data = 0.0
         self.z_sp.data = 2.0
 
+        #self.q_0_sp.data = 0.9239557
+        #self.e_1_sp.data = 0.0
+        #self.e_2_sp.data = 0.0
+        #self.e_3_sp.data = 0.3824995
 
 
-        self.q_0_sp.data = 0.1
+
+        self.q_0_sp.data = 0.707
         self.e_1_sp.data = 0.0
         self.e_2_sp.data = 0.0
-        self.e_3_sp.data = 0.0
+        self.e_3_sp.data = 0.707
         
         self.mpc1.x_setp =  self.x_sp.data
         self.mpc1.y_setp =  self.y_sp.data
@@ -139,6 +150,10 @@ class BluerovPubSubNode(Node):
         self.odome_subscriber #Prevent unused variable warning
         self.odome_2_subscriber 
 
+
+       # self.x_sp_subscriber
+       # self.y_sp_subscriber
+       # self.z_sp_subscriber
         self.q_0_sp_subscriber
         self.e_1_sp_subscriber
         self.e_2_sp_subscriber
@@ -197,6 +212,14 @@ class BluerovPubSubNode(Node):
 
         self.ready = True
 
+#    def x_sp_callback(self, msg):
+#        self.mpc1.x_setp = msg.data
+#
+#    def y_sp_callback(self, msg):
+#        self.mpc1.y_setp = msg.data
+#
+#    def z_sp_callback(self, msg):
+#        self.mpc1.z_setp = msg.data
     def ref_callback(self,msg):
         self.mpc1.x_setp = msg.x
         self.mpc1.y_setp = msg.y
@@ -222,7 +245,7 @@ class BluerovPubSubNode(Node):
             self.mpc1.e_1_setp = axis[0] * np.sin(theta/2)
             self.mpc1.e_2_setp = axis[1] * np.sin(theta/2)
             self.mpc1.e_3_setp = axis[2] * np.sin(theta/2)
-            print("######## QUART SP til ROV{}: [{}, {}, {}, {}]".format(self.main_id, self.mpc1.q_0_setp, self.mpc1.e_1_setp, self.mpc1.e_2_setp, self.mpc1.e_3_setp))
+            print("######## QUART SP til {}: [{}, {}, {}, {}]".format(self.main_id, self.mpc1.q_0_setp, self.mpc1.e_1_setp, self.mpc1.e_2_setp, self.mpc1.e_3_setp))
 
     def q_0_sp_callback(self, msg):
         self.mpc1.q_0_setp = msg.data
@@ -237,7 +260,11 @@ class BluerovPubSubNode(Node):
         self.mpc1.e_3_setp = msg.data
 
     def talker_callback(self):
+        #self.get_logger().info('\nODOM VECTOR: "%s"' % self.x0_1)
+        
         self.u0_1 = self.mpc1.mpc.make_step(self.x0_1)
+        print(self.u0_1)
+        #self.get_logger().info("\nPÅDRAG: \n%s" % self.u0_1)
         thrust1 = Float64()
         thrust1.data = round(float(self.u0_1[0][0]),2)
         thrust2 = Float64()
@@ -254,6 +281,10 @@ class BluerovPubSubNode(Node):
         thrust7.data = round(float(self.u0_1[6][0]),2)
         thrust8 = Float64()
         thrust8.data = round(float(self.u0_1[7][0]),2)
+
+
+        #self.get_logger().info('\nTHRUSTERE:\n1:{}\n2:{}\n3:{}\n4:{}\n5:{}\n6:{}\n7:{}\n8:{}'.format(thrust1.data,thrust2.data,thrust3.data,thrust4.data,thrust5.data,thrust6.data,thrust7.data,thrust8.data))
+        
 
         self.publisher_1.publish(thrust1)
         self.publisher_2.publish(thrust2)
@@ -281,7 +312,9 @@ class BluerovPubSubNode(Node):
             v1 = self.vector_between_rovs(x1, y1, z1, x2, y2, z2)
             v2 = self.x_directional_vector_from_quaternion(q0, e1, e2, e3)
 
+
             angle = Float64()
+            #angle.x,angle.y,angle.z = v2[0],v2[1],v2[2]
             angle.data = ((np.arccos((np.dot(v1, v2))/(np.linalg.norm(v1)*np.linalg.norm(v2))))/np.pi)*180
             self.angle_publisher.publish(angle)
             
