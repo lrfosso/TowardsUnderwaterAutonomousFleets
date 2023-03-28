@@ -1,5 +1,8 @@
 import sys
-sys.path.append("/home/tor/bluerovSim/bluerov2_garden/install/mpc_controller/lib/python3.10/site-packages/mpc_controller")
+import os
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path)
+#sys.path.append("/home/tor/bluerovSim/bluerov2_garden/install/mpc_controller/lib/python3.10/site-packages/mpc_controller")
 ## 
 #tor@PC:~/bluerovSim/ver0803/bluerov2_garden/src$ ls
 
