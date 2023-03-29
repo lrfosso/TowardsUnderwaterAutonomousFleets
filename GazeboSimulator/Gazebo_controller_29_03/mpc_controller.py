@@ -27,7 +27,7 @@ class BluerovPubSubNode(Node):
         self.fleet_quantity = int(self.fleet_quantity)
 
         # Initialize the MPC
-        self.FOV_constraint = False
+        self.FOV_constraint = True
         self.modelRov = MyROVModel()
         self.mpc1 = MyController(self.modelRov, # MPC-controller parameters
                                 Cost_function_id=1, 
@@ -68,31 +68,32 @@ class BluerovPubSubNode(Node):
         if(self.fleet_quantity > 1): 
             self.odometry_2_subscriber = self.create_subscription(  
                 Odometry, #Message type
-                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[0]), #Topic
+                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[-7+self.fleet_quantity]), #Topic
                 self.odometry_callback_2, #function?
                 10)
+            multi_agent_id.pop(-7+self.fleet_quantity)
         if(self.fleet_quantity > 2):
             self.odometry_3_subscriber = self.create_subscription( 
                 Odometry, #Message type
-                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[1]), #Topic
+                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[0]), #Topic
                 self.odometry_callback_3, #function?
                 10)
         if(self.fleet_quantity > 3):
             self.odometry_4_subscriber = self.create_subscription( 
                 Odometry, #Message type
-                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[2]), #Topic
+                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[1]), #Topic
                 self.odometry_callback_4, #function?
                 10)
         if(self.fleet_quantity > 4):
             self.odometry_5_subscriber = self.create_subscription( 
                 Odometry, #Message type
-                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[3]), #Topic
+                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[2]), #Topic
                 self.odometry_callback_5, #function?
                 10)
         if(self.fleet_quantity > 5):
             self.odometry_6_subscriber = self.create_subscription( 
                 Odometry, #Message type
-                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[4]), #Topic
+                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[3]), #Topic
                 self.odometry_callback_6, #function?
                 10)
         
