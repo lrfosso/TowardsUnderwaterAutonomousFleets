@@ -27,6 +27,7 @@ class BluerovPubSubNode(Node):
         self.fleet_quantity = int(self.fleet_quantity)
 
         # Initialize the MPC
+        self.FOV_constraint = False
         self.modelRov = MyROVModel()
         self.mpc1 = MyController(self.modelRov, # MPC-controller parameters
                                 Cost_function_id=1, 
@@ -35,7 +36,7 @@ class BluerovPubSubNode(Node):
                                 distance_rovs=3.5,
                                 FOV_range_deg=90,
                                 FOV_range_soft_deg=45,
-                                FOV_constraint= False
+                                FOV_constraint= self.FOV_constraint
                                 )
 
         # Initialize subscribers for the main ROV
@@ -61,7 +62,7 @@ class BluerovPubSubNode(Node):
         self.publisher_8 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster8_joint/cmd_thrust'.format(self.main_id), 10) 
 
         # Multi agent subscribers
-        multi_agent_id = [2, 3, 4, 5] #List of ROV IDs
+        multi_agent_id = [2, 3, 4, 5, 6, 7] #List of ROV IDs
         multi_agent_id.pop(self.main_id - 2) #Remove the main ROV ID from the list
 
         if(self.fleet_quantity > 1): 
@@ -81,6 +82,18 @@ class BluerovPubSubNode(Node):
                 Odometry, #Message type
                 "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[2]), #Topic
                 self.odometry_callback_4, #function?
+                10)
+        if(self.fleet_quantity > 4):
+            self.odometry_5_subscriber = self.create_subscription( 
+                Odometry, #Message type
+                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[3]), #Topic
+                self.odometry_callback_5, #function?
+                10)
+        if(self.fleet_quantity > 5):
+            self.odometry_6_subscriber = self.create_subscription( 
+                Odometry, #Message type
+                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[4]), #Topic
+                self.odometry_callback_6, #function?
                 10)
         
         self.main_odometry_subscriber #Prevent unused variable warning
@@ -112,12 +125,14 @@ class BluerovPubSubNode(Node):
         self.mpc1.y_setp = msg.y
         self.mpc1.z_setp = msg.z
 
-        # CALCULATIING THE QUATERNION REFERENCES
+        # CALCULATIING THE QUATERNION REFERENCES (Maybe move)
         if(self.ready_signal_mpc):
+            if(self.FOV_constraint):
+                comparison_vector = [self.mpc1.x_2, self.mpc1.y_2, self.mpc1.z_2]
+            else:
+                comparison_vector = [float(msg.x), float(msg.y), float(msg.z)]
             this_rov_pos = [float(self.x0[0]), float(self.x0[1]), float(self.x0[2])]
-            ref_pos = [float(msg.x), float(msg.y), float(msg.z)]
-
-            vector = np.array(ref_pos) - np.array(this_rov_pos)
+            vector = np.array(comparison_vector) - np.array(this_rov_pos)
             vector = vector / np.linalg.norm(vector)
 
             theta = np.arccos(np.dot([1, 0, 0], vector))
@@ -168,6 +183,18 @@ class BluerovPubSubNode(Node):
         self.mpc1.x_4 = msg.pose.pose.position.x
         self.mpc1.y_4 = msg.pose.pose.position.y
         self.mpc1.z_4 = msg.pose.pose.position.z
+
+    def odometry_callback_5(self, msg):
+        """Subscriber function for 5th ROV odometry"""
+        self.mpc1.x_5 = msg.pose.pose.position.x
+        self.mpc1.y_5 = msg.pose.pose.position.y
+        self.mpc1.z_5 = msg.pose.pose.position.z
+    
+    def odometry_callback_6(self, msg):
+        """Subscriber function for 6th ROV odometry"""
+        self.mpc1.x_6 = msg.pose.pose.position.x
+        self.mpc1.y_6 = msg.pose.pose.position.y
+        self.mpc1.z_6 = msg.pose.pose.position.z
 
     def publisher_callback(self):
         """Running the MPC and publishing the thrusts"""

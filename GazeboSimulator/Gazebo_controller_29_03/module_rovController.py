@@ -31,6 +31,12 @@ class MyController():
         self.x_4 = 0 
         self.y_4 = 0
         self.z_4 = 0
+        self.x_5 = 0 
+        self.y_5 = 0
+        self.z_5 = 0
+        self.x_6 = 0 
+        self.y_6 = 0
+        self.z_6 = 0
         self.mpc.set_tvp_fun(self.tvp_fun)
         tvp_template = self.mpc.get_tvp_template()
         ### Define the cost function
@@ -63,17 +69,16 @@ class MyController():
         # Non-linear constraints
         if(FOV_constraint):
             self.mpc.set_nl_cons("FOV",
-                2*(np.cos((FOV_range_soft_deg/180)*3.14)*length-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
+                2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
                 +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
                 +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
                 , ub=0, soft_constraint=True, penalty_term_cons=20
                 )
-        penalty_term_distance = [30, 45, 65]
+        penalty_term_distance = [30, 45, 65, 75, 85, 95]
         if(n_multi_agent>1):
             self.mpc.set_nl_cons("Distance2", 
             (distance_rovs**2-((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)), 
             ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
-            
         if(n_multi_agent>2):
             self.mpc.set_nl_cons("Distance3", 
             (distance_rovs**2-((_tvp_rov1['x_3']-_x_rov1['x'])**2+(_tvp_rov1['y_3']-_x_rov1['y'])**2+(_tvp_rov1['z_3']-_x_rov1['z'])**2)), 
@@ -81,6 +86,14 @@ class MyController():
         if(n_multi_agent>3):
             self.mpc.set_nl_cons("Distance4", 
                 (distance_rovs**2-((_tvp_rov1['x_4']-_x_rov1['x'])**2+(_tvp_rov1['y_4']-_x_rov1['y'])**2+(_tvp_rov1['z_4']-_x_rov1['z'])**2)), 
+                ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
+        if(n_multi_agent>4):
+            self.mpc.set_nl_cons("Distance5", 
+                (distance_rovs**2-((_tvp_rov1['x_5']-_x_rov1['x'])**2+(_tvp_rov1['y_5']-_x_rov1['y'])**2+(_tvp_rov1['z_5']-_x_rov1['z'])**2)), 
+                ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
+        if(n_multi_agent>5):
+            self.mpc.set_nl_cons("Distance6", 
+                (distance_rovs**2-((_tvp_rov1['x_6']-_x_rov1['x'])**2+(_tvp_rov1['y_6']-_x_rov1['y'])**2+(_tvp_rov1['z_6']-_x_rov1['z'])**2)), 
                 ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
   
         # Boundary constraints
@@ -126,6 +139,12 @@ class MyController():
             tvp_template['_tvp',k,'x_4'] =  self.x_4
             tvp_template['_tvp',k,'y_4'] =  self.y_4
             tvp_template['_tvp',k,'z_4'] =  self.z_4
+            tvp_template['_tvp',k,'x_5'] =  self.x_5
+            tvp_template['_tvp',k,'y_5'] =  self.y_5
+            tvp_template['_tvp',k,'z_5'] =  self.z_5
+            tvp_template['_tvp',k,'x_6'] =  self.x_6
+            tvp_template['_tvp',k,'y_6'] =  self.y_6
+            tvp_template['_tvp',k,'z_6'] =  self.z_6
 
 
             
