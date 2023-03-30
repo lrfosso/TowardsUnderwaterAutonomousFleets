@@ -2,7 +2,7 @@ import do_mpc
 import numpy as np
 
 class MyController():
-    def __init__(self, rovModel, Cost_function_id= 1, n_multi_agent = 0, radius_setp = 2, distance_rovs = 3.5, FOV_range_deg = 90, FOV_range_soft_deg = 45, FOV_constraint = False):
+    def __init__(self, rovModel, n_multi_agent = 0, radius_setp = 2, distance_rovs = 3.5, FOV_range_deg = 90, FOV_range_soft_deg = 45, FOV_constraint = False):
         #### Setting up the MPC-controller
         self.mpc = do_mpc.controller.MPC(rovModel.model)
         setup_mpc = { #MPC-controller parameters
@@ -40,8 +40,63 @@ class MyController():
         self.mpc.set_tvp_fun(self.tvp_fun)
         tvp_template = self.mpc.get_tvp_template()
         ### Define the cost function
-        match Cost_function_id:
-            case 1:
+        match n_multi_agent:
+            case 1: #Single agent
+                mterm = (3*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
+                20*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
+                + 30*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
+                +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2
+                ))
+                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2 +
+                                 _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
+                                 _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
+            case 2: #Two agents
+                mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
+                12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
+                + 50*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
+                +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2
+                ))
+                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2 +
+                                 _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
+                                 _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
+            case 3: #Three agents
+                mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
+                12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
+                + 50*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
+                +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2
+                ))
+                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2 +
+                                 _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
+                                 _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
+            case 4: #Four agents
+                mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
+                12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
+                + 50*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
+                +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2
+                ))
+                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2 +
+                                 _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
+                                 _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
+            case 5: #Five agents
+                mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
+                12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
+                + 50*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
+                +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
+                +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2
+                ))
+                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2 +
+                                 _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
+                                 _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
+            case 6: #Six agents
                 mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
                 12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
                 + 50*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
@@ -67,7 +122,7 @@ class MyController():
 
         ### Setting the constraints
         # Non-linear constraints
-        if(FOV_constraint):
+        if(FOV_constraint and (n_multi_agent>1)):
             self.mpc.set_nl_cons("FOV",
                 2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
                 +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])

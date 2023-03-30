@@ -25,12 +25,10 @@ class BluerovPubSubNode(Node):
         self.fleet_quantity = self.get_parameter('fleet_quantity').get_parameter_value().string_value
         self.main_id = int(self.main_id)
         self.fleet_quantity = int(self.fleet_quantity)
-
         # Initialize the MPC
         self.FOV_constraint = True
         self.modelRov = MyROVModel()
         self.mpc1 = MyController(self.modelRov, # MPC-controller parameters
-                                Cost_function_id=1, 
                                 n_multi_agent=self.fleet_quantity,
                                 radius_setp=2,
                                 distance_rovs=3.5,
@@ -59,7 +57,7 @@ class BluerovPubSubNode(Node):
         self.publisher_5 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster5_joint/cmd_thrust'.format(self.main_id), 10)
         self.publisher_6 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster6_joint/cmd_thrust'.format(self.main_id), 10)
         self.publisher_7 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster7_joint/cmd_thrust'.format(self.main_id), 10)
-        self.publisher_8 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster8_joint/cmd_thrust'.format(self.main_id), 10) 
+        self.publisher_8 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster8_joint/cmd_thrust'.format(self.main_id), 10)
 
         # Multi agent subscribers
         multi_agent_id = [2, 3, 4, 5, 6, 7] #List of ROV IDs
@@ -220,6 +218,8 @@ class BluerovPubSubNode(Node):
             thrust7.data = round(float(self.u0_1[6][0]),2)
             thrust8 = Float64()
             thrust8.data = round(float(self.u0_1[7][0]),2)
+            
+            
 
             self.publisher_1.publish(thrust1)
             self.publisher_2.publish(thrust2)
