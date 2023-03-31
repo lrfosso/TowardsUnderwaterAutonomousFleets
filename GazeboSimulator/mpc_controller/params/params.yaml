@@ -1,0 +1,9 @@
+/**:
+  ros_parameters:
+    multi_agent: 7
+    FOV_constraint: True
+    radius_setp: 2.0
+    distance_rovs: 4.0
+    FOV_range_deg: 90.0
+    FOV_range_soft_deg: 45.0
+    cycle_time_publish: 0.05
