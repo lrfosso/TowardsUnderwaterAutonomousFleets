@@ -82,8 +82,8 @@ class MyROVModel():
         #input
         u_1 = self.model.set_variable('_u', 'u_1')
         u_2 = self.model.set_variable('_u', 'u_2')
-        u_3 = -self.model.set_variable('_u', 'u_3')
-        u_4 = -self.model.set_variable('_u', 'u_4')
+        u_3 = self.model.set_variable('_u', 'u_3')
+        u_4 = self.model.set_variable('_u', 'u_4')
         u_5 = self.model.set_variable('_u', 'u_5')
         u_6 = self.model.set_variable('_u', 'u_6')
         u_7 = self.model.set_variable('_u', 'u_7')
