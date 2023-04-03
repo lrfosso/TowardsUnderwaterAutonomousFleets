@@ -79,16 +79,17 @@ class BluerovPubSubNode(Node):
         self.publisher_8 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster8_joint/cmd_thrust'.format(self.main_id), 10)
 
         # Multi agent subscribers
-        multi_agent_id = [2, 3, 4, 5, 6, 7] #List of ROV IDs
+        multi_agent_id = [i for i in range(2,(self.fleet_quantity+2))] #List of ROV IDs
         multi_agent_id.pop(self.main_id - 2) #Remove the main ROV ID from the list
 
         if(self.fleet_quantity > 1): 
             self.odometry_2_subscriber = self.create_subscription(  
                 Odometry, #Message type
-                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[-7+self.fleet_quantity]), #Topic
+                "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[self.main_id-self.fleet_quantity-1]), #Topic
                 self.odometry_callback_2, #function?
                 10)
-            multi_agent_id.pop(-7+self.fleet_quantity)
+            self.sec_rov = multi_agent_id[self.main_id-self.fleet_quantity-1]  ## TO BE REMOVED AT A LATER STAGE
+            multi_agent_id.pop(self.main_id-self.fleet_quantity-1)
         if(self.fleet_quantity > 2):
             self.odometry_3_subscriber = self.create_subscription( 
                 Odometry, #Message type
@@ -113,7 +114,9 @@ class BluerovPubSubNode(Node):
                 "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[3]), #Topic
                 self.odometry_callback_6, #function?
                 10)
-        
+
+        self.angle_publisher = self.create_publisher(Float64, 'angle/from_{}_to_{}'.format(self.main_id, self.sec_rov), 10) ## TO BE REMOVED AT A LATER STAGE
+
         self.main_odometry_subscriber #Prevent unused variable warning
         cycle_time_publish = 0.05  # seconds
         self.timer = self.create_timer(cycle_time_publish, self.publisher_callback)
@@ -189,6 +192,12 @@ class BluerovPubSubNode(Node):
         self.mpc1.x_2 = msg.pose.pose.position.x
         self.mpc1.y_2 = msg.pose.pose.position.y
         self.mpc1.z_2 = msg.pose.pose.position.z
+        if(self.ready_signal_mpc):
+            v1 = self.vector_between_rovs(self.x0[0], self.x0[1], self.x0[2], msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z)
+            v2 = self.x_directional_vector_from_quaternion(self.x0[3], self.x0[4], self.x0[5], self.x0[6])
+            angle = Float64()
+            angle.data = round(((180*(np.arccos(np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2)))))/np.pi),2)
+            self.angle_publisher.publish(angle)
 
     def odometry_callback_3(self, msg):
         """Subscriber function for 3rd ROV odometry"""
@@ -240,7 +249,8 @@ class BluerovPubSubNode(Node):
             
             
 
-            self.publisher_1.publish(thrust1)
+            self.publisher_1.publish(thrust1
+            )
             self.publisher_2.publish(thrust2)
             self.publisher_3.publish(thrust3)
             self.publisher_4.publish(thrust4)
@@ -253,6 +263,5 @@ def main(args=None):
     rclpy.init(args=args)
     bluerov_pubsub_node = BluerovPubSubNode()
     rclpy.spin(bluerov_pubsub_node)
-    rclpy.shutdown()
-    
+    rclpy.shutdown() 
 main()

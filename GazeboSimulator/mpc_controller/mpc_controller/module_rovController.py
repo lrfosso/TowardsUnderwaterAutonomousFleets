@@ -55,7 +55,7 @@ class MyController():
             case 2: #Two agents
                 mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
                 12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
-                + 50*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
+                + 70*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
                 +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
                 +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
                 +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2
@@ -109,14 +109,14 @@ class MyController():
                                  _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
         ## Pentalty term for the thrusters
         self.mpc.set_rterm(
-                u_1 = 1,
-                u_2 = 1,
-                u_3 = 1,
-                u_4 = 1,
-                u_5 = 1,
-                u_6 = 1,
-                u_7 = 1,
-                u_8 = 1
+                u_1 = 0.1,
+                u_2 = 0.1,
+                u_3 = 0.1,
+                u_4 = 0.1,
+                u_5 = 0.1,
+                u_6 = 0.1,
+                u_7 = 0.1,
+                u_8 = 0.1
                 )
         self.mpc.set_objective(mterm=mterm,lterm=lterm)
 
@@ -127,9 +127,9 @@ class MyController():
                 2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
                 +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
                 +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
-                , ub=0, soft_constraint=True, penalty_term_cons=20
+                , ub=0, soft_constraint=True, penalty_term_cons=35
                 )
-        penalty_term_distance = [30, 45, 65, 75, 85, 95]
+        penalty_term_distance = [30, 85, 85, 95, 95, 95]
         if(n_multi_agent>1):
             self.mpc.set_nl_cons("Distance2", 
             (distance_rovs**2-((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)), 
