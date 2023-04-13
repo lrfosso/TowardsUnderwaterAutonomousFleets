@@ -155,13 +155,19 @@ class MyROVModel():
         #### MATRICES ############### (multiplied out)
         
         #hydrostatics
+        #g_1 = (B-W)*(2*e_1*e_3 - 2*e_2*q_0)
+        #g_2 = (B-W)*(2*e_2*e_3 - 2*e_1*q_0)
+        #g_3 = (W-B)*(2*e_1**2 + 2*e_2**2 -1)
+        #g_4 = z_g*W*(2*e_2*e_3 + 2*e_1*q_0)
+        #g_5 = z_g*W*(2*e_1*e_3 - 2*e_2*q_0)
+        #g_6 = 0
         g_1 = (B-W)*(2*e_1*e_3 - 2*e_2*q_0)
-        g_2 = (B-W)*(2*e_2*e_3 - 2*e_1*q_0)
-        g_3 = (W-B)*(2*e_1**2 + 2*e_2**2 -1)
-        g_4 = z_g*W*(2*e_2*e_3 + 2*e_1*q_0)
-        g_5 = z_g*W*(2*e_1*e_3 - 2*e_2*q_0)
+        g_2 = (B-W)*(2*e_2*e_3 + 2*e_1*q_0)
+        g_3 = -(B-W)*(2*e_1**2 + 2*e_2**2 -1)
+        g_4 = W*z_g*(2*e_2*e_3 + 2*e_1*q_0)
+        g_5 = -W*z_g*(2*e_1*e_3 - 2*e_2*q_0)
         g_6 = 0
-    
+        
         #tau forces
         #tau_1 = (0.707*u_1 + 0.707*u_2-0.707*u_3-0.707*u_4)
         #tau_2 =(-0.707*u_1 + 0.707*u_2-0.707*u_3 + 0.707*u_4)
@@ -187,12 +193,19 @@ class MyROVModel():
         M_rb_6 = I_z*r_dot
         
         #C_rb Rigid-body coriolis and centripital matrix
-        C_rb_1 = m*w*q
-        C_rb_2 =  -m*w*p
-        C_rb_3 =  m*(v*p - u*q)
-        C_rb_4 =  m*(w*v - v*w) +I_z*r*q - I_y*q*r
-        C_rb_5 = -m*(w*u - u*w) - I_z*r*p + I_x*p*r
-        C_rb_6 = m*(v*u - u*v) + I_y*q*p -I_x*p*q
+        #C_rb_1 = m*w*q
+        #C_rb_2 =  -m*w*p
+        #C_rb_3 =  m*(v*p - u*q)
+        #C_rb_4 =  m*(w*v - v*w) +I_z*r*q - I_y*q*r
+        #C_rb_5 = -m*(w*u - u*w) - I_z*r*p + I_x*p*r
+        #C_rb_6 = m*(v*u - u*v) + I_y*q*p -I_x*p*q
+        C_rb_1 = m*w*q + (m*p*z_g-m*v)*r
+        C_rb_2 = -m*w*p + (m*u + m*q*z_g)*r
+        C_rb_3 =  m*((v - p*z_g)*p + (-u - q*z_g)*q)
+        C_rb_4 =  m*(w*v + (p*z_g - v)*w) +I_z*r*q  + (- I_y*q - m*u*z_g)*r
+        C_rb_5 = m*(-w*u + (u + q*z_g)*w) - I_z*r*p + (I_x*p - m*v*z_g)*r
+        C_rb_6 = m*((v - p*z_g)*u + (-u -q*z_g)*v) + (I_y*q + m*u*z_g)*p  + (m*v*z_g - I_x*p)*q
+        
         
         # M_a Added mass matrix
         M_a_1 = -X_udot*u_dot
@@ -203,12 +216,19 @@ class MyROVModel():
         M_a_6 = -N_rdot*r_dot
         
         #C_a Coriolis and centripital matrix
-        C_a_1 = Z_wdot*w*q
-        C_a_2 = -Z_wdot*w*p - X_udot*u*r
+        #C_a_1 = Z_wdot*w*q
+        #C_a_2 = -Z_wdot*w*p - X_udot*u*r
+        #C_a_3 = -Y_vdot*v*p + X_udot*u*q
+        #C_a_4 = -Z_wdot*w*v + Y_vdot*v*w - N_rdot*r*q + M_qdot*q*r
+        #C_a_5 = Z_wdot*w*u - X_udot*u*w + N_rdot*r*p - K_pdot*p*r
+        #C_a_6 = - Y_vdot*v*u + X_udot*u*v - M_qdot*q*p + K_pdot*p*q
+        C_a_1 = -Z_wdot*w*q + Y_vdot*v*r
+        C_a_2 = Z_wdot*w*p - X_udot*u*r
         C_a_3 = -Y_vdot*v*p + X_udot*u*q
         C_a_4 = -Z_wdot*w*v + Y_vdot*v*w - N_rdot*r*q + M_qdot*q*r
         C_a_5 = Z_wdot*w*u - X_udot*u*w + N_rdot*r*p - K_pdot*p*r
         C_a_6 = - Y_vdot*v*u + X_udot*u*v - M_qdot*q*p + K_pdot*p*q
+        
         
         
         #D_l Linear damping matrix, skin friction
