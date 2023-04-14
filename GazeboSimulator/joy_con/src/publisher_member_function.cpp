@@ -20,13 +20,14 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/joy.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
+#include "std_msgs/msg/int32.hpp"
 
 using namespace std::chrono_literals;
 
 /* This example creates a subclass of Node and uses std::bind() to register a
  * member function as a callback from the timer. */
 double x, y, z;
-
+int control_mode;
 class MinimalPublisher : public rclcpp::Node
 {
 public:
@@ -39,32 +40,42 @@ public:
 
     subscription_ = this->create_subscription<sensor_msgs::msg::Joy>(
 		    "/joy", 10, std::bind(&MinimalPublisher::topic_callback, this, std::placeholders::_1));
+		    
+    subscription_1 = this->create_subscription<std_msgs::msg::Int32>(
+		    "/control_mode", 10, std::bind(&MinimalPublisher::control_mode_callback, this, std::placeholders::_1));
   }
 
 private:
   void timer_callback()
-  {
+  { if(control_mode == 0){
     auto message = geometry_msgs::msg::Vector3();
     message.x = x;
     message.y = y;
     message.z = z;
     RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", std::to_string(message.x).c_str());
     publisher_->publish(message);
-  }
+  }}
+
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr publisher_;
+  
   size_t count_;
 
   void topic_callback(const sensor_msgs::msg::Joy & msg) const
-    {
+    { if(control_mode == 0){
       x += msg.axes[1]/10;
-      y += msg.axes[0]/10;
+      y += -msg.axes[0]/10;
       z += (- msg.axes[2] + msg.axes[5])/100;
       RCLCPP_INFO(this->get_logger(), "I heard: '%s'", std::to_string(msg.axes[1]).c_str());
-    }
+    }}
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr subscription_;
 
-
+  void control_mode_callback(const std_msgs::msg::Int32 & msg) const
+    {
+      control_mode = msg.data;
+      RCLCPP_INFO(this->get_logger(), "I heard: '%s'", std::to_string(msg.data).c_str());
+    }
+    rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr subscription_1;
 
 };
 
