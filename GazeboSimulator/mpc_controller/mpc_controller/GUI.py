@@ -13,7 +13,8 @@ class GUI(Node):
     def __init__(self):
         ###### INIT ROS2 ############################################################################
         super().__init__('GUI')
-        self.n_agents = 3
+        self.declare_parameter('fleet_quantity')
+        self.n_agents = self.get_parameter('fleet_quantity').get_parameter_value().integer_value
         self.subscription = self.create_subscription(
             Odometry,
             '/bluerov2_pid/bluerov2/observer/nlo/odom_ned',
@@ -288,7 +289,7 @@ def main(args=None):
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    window.close()
+    sg.window.close()
     minimal_subscriber.destroy_node()
     rclpy.shutdown()
 
