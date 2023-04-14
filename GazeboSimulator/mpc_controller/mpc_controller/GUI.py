@@ -44,7 +44,7 @@ class GUI(Node):
         self.publisher_control_mode = self.create_publisher(Int32, '/control_mode', 10)
 
         ###### INIT PLOT ############################################################################
-        w, h = figsize = (10, 10)     # figure size
+        w, h = figsize = (10, 7)     # figure size
         self.fig, self.ax = plt.subplots(figsize=figsize)
         dpi = self.fig.get_dpi()
         self.size = (int(w*dpi), int(h*dpi))
@@ -53,6 +53,7 @@ class GUI(Node):
         self.ax.set_title('Birds eye view of sea', fontdict={'fontsize': 20})
         self.ax.set_xlabel('x', fontdict={'fontsize': 15})
         self.ax.set_ylabel('y', fontdict={'fontsize': 15})
+        self.ax.set_facecolor("blue")
 
         ###### INIT PYSIMPLEGUI ######################################################################
         self.setup_layout()
@@ -93,12 +94,14 @@ class GUI(Node):
         else:
             mode.data = 0
         self.publisher_control_mode.publish(mode)
+        if event == '-SET_CUR-':
+            self.set_ocean_current()
 
         self.reinitialize_plot()
 
         ## plot the reference and final destination
-        self.ax.scatter(self.traj_reference[0], self.traj_reference[1], c='black', s=20, label='Reference', marker='x')
-        self.ax.scatter(self.final_dest_x, self.final_dest_y, c='black', s=20, label='Final dest.')
+        self.ax.scatter(self.traj_reference[0], self.traj_reference[1], c='black', s=40, label='Reference', marker='x')
+        self.ax.scatter(self.final_dest_x, self.final_dest_y, c='black', s=40, label='Final dest.')
 
         ## update the canvas with ROV1
         if self.values['-TRAJ1-'] == True:
@@ -109,7 +112,7 @@ class GUI(Node):
             self.trajectory_log_1[1].append(self.odom1.y)
         else:
             self.trajectory_log_1 = [[],[]]
-        self.ax.scatter(self.odom1.x, self.odom1.y, c='blue', s=20, label='ROV 1')
+        self.ax.scatter(self.odom1.x, self.odom1.y, c='blue', s=40, label='ROV 1')
         self.ax.plot(self.trajectory_log_1[0], self.trajectory_log_1[1], c='blue')
         ## update the canvas with ROV2
         if self.n_agents > 1:
@@ -121,7 +124,7 @@ class GUI(Node):
                 self.trajectory_log_2[1].append(self.pos2[1])
             else:
                 self.trajectory_log_2 = [[],[]]
-            self.ax.scatter(self.pos2[0], self.pos2[1], c='green', s=20, label='ROV 2')
+            self.ax.scatter(self.pos2[0], self.pos2[1], c='green', s=40, label='ROV 2')
             self.ax.plot(self.trajectory_log_2[0], self.trajectory_log_2[1], c='green')
         ## update the canvas with ROV3
         if self.n_agents > 2:
@@ -133,7 +136,7 @@ class GUI(Node):
                 self.trajectory_log_3[1].append(self.pos3[1])
             else:
                 self.trajectory_log_3 = [[],[]]
-            self.ax.scatter(self.pos3[0], self.pos3[1], c='red', s=20, label='ROV 3')
+            self.ax.scatter(self.pos3[0], self.pos3[1], c='red', s=40, label='ROV 3')
             self.ax.plot(self.trajectory_log_3[0], self.trajectory_log_3[1], c='red')
         ## Update the canvas with the new plot
         self.update_xyz_GUI_indication()
@@ -162,6 +165,7 @@ class GUI(Node):
         self.ax.set_title('Birds eye view of sea', fontdict={'fontsize': 20})
         self.ax.set_xlabel('x', fontdict={'fontsize': 15})
         self.ax.set_ylabel('y', fontdict={'fontsize': 15})
+        self.ax.set_facecolor((0.1,0.9,1))
 
     def setup_layout(self):
         """"Setup the layout of the GUI"""
@@ -245,14 +249,28 @@ class GUI(Node):
             sg.Checkbox('', default=False, key='-TRAJ3-',text_color="black", font=font, background_color=button_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),  
             sg.Text('', size=(checkbox_spacing_w+1, 2), background_color=background_col, font=font,text_color=text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),    
             ],
-            [sg.Button('Read Parameters', size=(20, 2), font=font, key='-READ-', button_color=('white', 'green'), pad=((0, 0), (10, 0)))],
-            [sg.Radio('Manual (Joystick)               ', "Control_mode", default=False,text_color="black", font=font, background_color=button_col, size=(30, 1))],
-            [sg.Radio('Autonomous (Trajectory planning)', "Control_mode", key='-AUTO-',text_color="black", font=font, background_color=button_col, default=True, size=(30, 1))],
+            [sg.Text('Control mode', size=(55, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),],
+            [sg.Radio('Manual (Joystick)               ', "Control_mode", default=False,text_color="black", font=font, background_color=button_col, size=(50, 1))],
+            [sg.Radio('Autonomous (Trajectory planning)', "Control_mode", key='-AUTO-',text_color="black", font=font, background_color=button_col, default=True, size=(50, 1))],
             [sg.Text('', background_color=background_col)],
-            [sg.Button('Exit', size=(20, 2), font=font, key='-EXIT-', button_color=('white', 'red'), pad=((0, 0), (10, 0)))]
+            [sg.Button('Read System Parameters', size=(9, 2), font=font, key='-READ-', button_color=('black', button_col), pad=((0, 0), (10, 0))),
+            sg.Text('', background_color=background_col, size=(20, 1)),
+            sg.Button('Exit', size=(25, 2), font=font, key='-EXIT-', button_color=('white', 'red'), pad=((0, 0), (10, 0)))
+            ],
             ]
         self.sec_col = [
             [sg.Canvas(size=self.size, key='-CANVAS-', background_color='white')],
+            [sg.Text('Ocean current:', size=(15, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
+            ],
+            [sg.Text('X', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
+            sg.InputText('0', size=(5, 1), justification='center', font=font, key='-CUR_X-',text_color=text_col, background_color=ind_text_col),
+            sg.Text('Y', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
+            sg.InputText('0', size=(5, 1), justification='center', font=font, key='-CUR_Y-',text_color=text_col, background_color=ind_text_col),
+            sg.Text('Z', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
+            sg.InputText('0', size=(5, 1), justification='center', font=font, key='-CUR_Z-',text_color=text_col, background_color=ind_text_col),
+            sg.Button('Set', size=(10, 1), font=font, key='-SET_CUR-', button_color=('black', button_col)),
+            ],
+            
         ]
         sg.theme('DarkTanBlue')
         self.layout = [
@@ -290,7 +308,29 @@ class GUI(Node):
             self.publisher_1.publish(waypoint)
         invalid = False
 
-    
+    def set_ocean_current(self):
+        """Set ocean current"""
+        ## Checking if the current coordinates are valid
+        invalid = False
+        try:
+            float(self.values['-CUR_X-'])
+            float(self.values['-CUR_Y-'])
+            float(self.values['-CUR_Z-'])
+            if(float(self.values['-CUR_X-']) > 2 or float(self.values['-CUR_X-']) < -2
+                or float(self.values['-CUR_Y-']) > 2 or float(self.values['-CUR_Y-']) < -2
+                or float(self.values['-CUR_Z-']) > 2 or float(self.values['-CUR_Z-']) < -2):
+                invalid = True
+        except ValueError:
+            invalid = True
+        ## Settnig the limits for the current coordinates
+
+        if(invalid):
+            sg.popup('Please enter a valid number for the current coordinates!',background_color="yellow", text_color="black", font="Helvetica 14", title="Warning")
+        else:
+            os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: {}, y:{}, z:{}'".format(self.values['-CUR_X-'], self.values['-CUR_Y-'], self.values['-CUR_Z-']))
+            
+        invalid = False
+
     def ROV2_odom_callback(self, msg):
         """Callback function for odometry2 topic"""
         self.pos2 = [msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z]
@@ -307,6 +347,7 @@ class GUI(Node):
         """Opens a new window with parameters"""
         cwd = os.getcwd()
         params_path = cwd + "/src/mpc_controller/params/params.yaml"
+
         with open(str(params_path)) as my_file:
             docu = []
             for line in my_file:
@@ -320,6 +361,7 @@ class GUI(Node):
             [sg.Text(docu[6])],
             [sg.Text(docu[7])],
             [sg.Text(docu[8])],
+            #[sg.Text(str(pwd))]
             [sg.Button("Exit", key="Exit")]
         ]
         window = sg.Window("Parameters", layout, modal=True)
