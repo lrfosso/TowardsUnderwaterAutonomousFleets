@@ -24,6 +24,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+        'GUI = mpc_controller.GUI:main',
         'bluerov_mpc = mpc_controller.mpc_controller:main',
         'setpoint = mpc_controller.setpoint_publisher:main'
         ],
