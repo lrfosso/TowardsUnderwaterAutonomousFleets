@@ -51,8 +51,8 @@ class GUI(Node):
         self.ax.grid(True)
         self.ax.set(xlim=(-10, 10), ylim=(-10, 10))
         self.ax.set_title('Birds eye view of sea', fontdict={'fontsize': 20})
-        self.ax.set_xlabel('x', fontdict={'fontsize': 15})
-        self.ax.set_ylabel('y', fontdict={'fontsize': 15})
+        self.ax.set_xlabel('y', fontdict={'fontsize': 15})
+        self.ax.set_ylabel('x', fontdict={'fontsize': 15})
         self.ax.set_facecolor("blue")
 
         ###### INIT PYSIMPLEGUI ######################################################################
@@ -100,8 +100,8 @@ class GUI(Node):
         self.reinitialize_plot()
 
         ## plot the reference and final destination
-        self.ax.scatter(self.traj_reference[0], self.traj_reference[1], c='black', s=40, label='Reference', marker='x')
-        self.ax.scatter(self.final_dest_x, self.final_dest_y, c='black', s=40, label='Final dest.')
+        self.ax.scatter(self.traj_reference[1], self.traj_reference[0], c='black', s=40, label='Reference', marker='x')
+        self.ax.scatter(self.final_dest_y,self.final_dest_x ,c='black', s=40, label='Final dest.')
 
         ## update the canvas with ROV1
         if self.values['-TRAJ1-'] == True:
@@ -112,8 +112,8 @@ class GUI(Node):
             self.trajectory_log_1[1].append(self.odom1.y)
         else:
             self.trajectory_log_1 = [[],[]]
-        self.ax.scatter(self.odom1.x, self.odom1.y, c='blue', s=40, label='ROV 1')
-        self.ax.plot(self.trajectory_log_1[0], self.trajectory_log_1[1], c='blue')
+        self.ax.scatter(self.odom1.y, self.odom1.x, c='blue', s=40, label='ROV 1')
+        self.ax.plot(self.trajectory_log_1[1], self.trajectory_log_1[0], c='blue')
         ## update the canvas with ROV2
         if self.n_agents > 1:
             if self.values['-TRAJ2-'] == True:
@@ -124,8 +124,8 @@ class GUI(Node):
                 self.trajectory_log_2[1].append(self.pos2[1])
             else:
                 self.trajectory_log_2 = [[],[]]
-            self.ax.scatter(self.pos2[0], self.pos2[1], c='green', s=40, label='ROV 2')
-            self.ax.plot(self.trajectory_log_2[0], self.trajectory_log_2[1], c='green')
+            self.ax.scatter(self.pos2[1], self.pos2[0], c='green', s=40, label='ROV 2')
+            self.ax.plot(self.trajectory_log_2[1], self.trajectory_log_2[0], c='green')
         ## update the canvas with ROV3
         if self.n_agents > 2:
             if self.values['-TRAJ3-'] == True:
@@ -136,8 +136,8 @@ class GUI(Node):
                 self.trajectory_log_3[1].append(self.pos3[1])
             else:
                 self.trajectory_log_3 = [[],[]]
-            self.ax.scatter(self.pos3[0], self.pos3[1], c='red', s=40, label='ROV 3')
-            self.ax.plot(self.trajectory_log_3[0], self.trajectory_log_3[1], c='red')
+            self.ax.scatter(self.pos3[1], self.pos3[0], c='red', s=40, label='ROV 3')
+            self.ax.plot(self.trajectory_log_3[1], self.trajectory_log_3[0], c='red')
         ## Update the canvas with the new plot
         self.update_xyz_GUI_indication()
         self.ax.legend()
@@ -163,8 +163,8 @@ class GUI(Node):
         self.ax.grid(True)
         self.ax.set(xlim=(-20, 20), ylim=(-20, 20))
         self.ax.set_title('Birds eye view of sea', fontdict={'fontsize': 20})
-        self.ax.set_xlabel('x', fontdict={'fontsize': 15})
-        self.ax.set_ylabel('y', fontdict={'fontsize': 15})
+        self.ax.set_xlabel('y', fontdict={'fontsize': 15})
+        self.ax.set_ylabel('x', fontdict={'fontsize': 15})
         self.ax.set_facecolor((0.1,0.9,1))
 
     def setup_layout(self):
