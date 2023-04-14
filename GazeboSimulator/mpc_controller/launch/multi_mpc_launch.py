@@ -49,6 +49,17 @@ def multi_launch(context, *args, **kwargs):
     )
     launch_agents.append(trajectory_node)
 
+    gui_node = Node(
+        package='mpc_controller',
+        executable='GUI',
+        parameters=[
+        {
+            'fleet_quantity': multi_agent    
+        }
+        ]
+    )
+    launch_agents.append(gui_node)
+
     return launch_agents
 
 #Launch
