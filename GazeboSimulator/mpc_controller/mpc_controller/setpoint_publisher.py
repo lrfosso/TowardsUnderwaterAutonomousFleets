@@ -9,6 +9,7 @@ from numpy import sin,cos, pi, array, linalg, sqrt
 from rclpy.node import Node
 
 from std_msgs.msg import String
+from std_msgs.msg import Int32
 from geometry_msgs.msg import Vector3
 
 class SetpointPublisher(Node):
@@ -44,7 +45,9 @@ class SetpointPublisher(Node):
         super().__init__('setpoint_publisher')
         self.j = 0 # tracker for which waypoint is active
         self.i = 0 # no. times timer callback has been called
-
+        
+        self.control_mode = 1 #control mode initialized to trajectory
+	
         self.wp_x = [] #waypoint lists
         self.wp_y = []
         self.wp_z = []
@@ -62,6 +65,15 @@ class SetpointPublisher(Node):
             "/trajectory_waypoints", #Topic
             self.trajectory_callback, #function?
             10)
+            
+        self.control_subscriber = self.create_subscription(  # Creates a subscription to the trajectory waypoints topic
+            Int32, #Message type vector of 3 floats
+            "/control_mode", #Topic
+            self.control_mode_callback, #function?
+            10)
+            
+    def control_mode_callback(self, msg):
+        self.control_mode = msg.data
 
     def trajectory_callback(self, msg): # append waypoints to waypoint list
 
@@ -88,38 +100,39 @@ class SetpointPublisher(Node):
         self.wp_z.append(msg.z)
 
     def timer_callback(self):
-        current_time = self.i * self.timer_period #
-        msg = Vector3()
-        #msg.x,msg.y,msg.z = self.sine_wave(self.i)
-
-
-        print(self.wp_t)
-        if(len(self.wp_x) > 1): #Skip if waypoint lists are empty
-            self.i += 1
-            if((self.wp_t[len(self.wp_t)-1]) <= current_time):  # if the last waypoint has been reached, set reference to last waypoint
-                msg.x = self.cubic_trajectory_generation(self.a_x,self.wp_t[self.j]+1) 
-                msg.y = self.cubic_trajectory_generation(self.a_y,self.wp_t[self.j]+1)
-                msg.z = self.cubic_trajectory_generation(self.a_z,self.wp_t[self.j]+1)
-                self.i -= 1 # pauses timer when ROV at last waypoint
+    	if (self.control_mode == 1):
+            current_time = self.i * self.timer_period #
+            msg = Vector3()
+		    #msg.x,msg.y,msg.z = self.sine_wave(self.i)
             
-            elif ((current_time >= self.wp_t[self.j]) and ((len(self.wp_t)) > (self.j+1))): # if current cubic trajectory has been completed and there are still more waypoints, move to next trajectory spline
-                self.a_x[0], self.a_x[1], self.a_x[2], self.a_x[3] = self.cubic_trajectory_parameter_generation(self.wp_x[self.j],0,self.wp_x[self.j+1],0,current_time,self.wp_t[self.j+1])
-                self.a_y[0], self.a_y[1], self.a_y[2], self.a_y[3] = self.cubic_trajectory_parameter_generation(self.wp_y[self.j],0,self.wp_y[self.j+1],0,current_time,self.wp_t[self.j+1])
-                self.a_z[0], self.a_z[1], self.a_z[2], self.a_z[3] = self.cubic_trajectory_parameter_generation(self.wp_z[self.j],0,self.wp_z[self.j+1],0,current_time,self.wp_t[self.j+1])
-                # set msg and increment j
-                msg.x = self.cubic_trajectory_generation(self.a_x,current_time)
-                msg.y = self.cubic_trajectory_generation(self.a_y,current_time)
-                msg.z = self.cubic_trajectory_generation(self.a_z,current_time)
-                self.j+=1
+            print(self.wp_t)
+            
+            if(len(self.wp_x) > 1): #Skip if waypoint lists are empty
+                self.i += 1
+
+                if((self.wp_t[len(self.wp_t)-1]) <= current_time):  # if the last waypoint has been reached, set reference to last waypoint
+                    msg.x = self.cubic_trajectory_generation(self.a_x,self.wp_t[self.j]+1) 
+                    msg.y = self.cubic_trajectory_generation(self.a_y,self.wp_t[self.j]+1)
+                    msg.z = self.cubic_trajectory_generation(self.a_z,self.wp_t[self.j]+1)
+                    self.i -= 1 # pauses timer when ROV at last waypoint
+                    
+                elif ((current_time >= self.wp_t[self.j]) and ((len(self.wp_t)) > (self.j+1))): # if current cubic trajectory has been completed and there are still more waypoints, move to next trajectory spline
+                    self.a_x[0], self.a_x[1], self.a_x[2], self.a_x[3] = self.cubic_trajectory_parameter_generation(self.wp_x[self.j],0,self.wp_x[self.j+1],0,current_time,self.wp_t[self.j+1])
+                    self.a_y[0], self.a_y[1], self.a_y[2], self.a_y[3] = self.cubic_trajectory_parameter_generation(self.wp_y[self.j],0,self.wp_y[self.j+1],0,current_time,self.wp_t[self.j+1])
+                    self.a_z[0], self.a_z[1], self.a_z[2], self.a_z[3] = self.cubic_trajectory_parameter_generation(self.wp_z[self.j],0,self.wp_z[self.j+1],0,current_time,self.wp_t[self.j+1])
+		            # set msg and increment j
+                    msg.x = self.cubic_trajectory_generation(self.a_x,current_time)
+                    msg.y = self.cubic_trajectory_generation(self.a_y,current_time)
+                    msg.z = self.cubic_trajectory_generation(self.a_z,current_time)
+                    self.j+=1
     
-            else: #else, set msg
-                msg.x = self.cubic_trajectory_generation(self.a_x,current_time)
-                msg.y = self.cubic_trajectory_generation(self.a_y,current_time)
-                msg.z = self.cubic_trajectory_generation(self.a_z,current_time)
-    
-    
-        self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: x:"%s", y:"%s", z:"%s"' %( msg.x,msg.y,msg.z))
+                else: #else, set msg
+                    msg.x = self.cubic_trajectory_generation(self.a_x,current_time)
+                    msg.y = self.cubic_trajectory_generation(self.a_y,current_time)
+                    msg.z = self.cubic_trajectory_generation(self.a_z,current_time)
+                
+            self.publisher_.publish(msg)
+            self.get_logger().info('Publishing: x:"%s", y:"%s", z:"%s"' %( msg.x,msg.y,msg.z))
 
 
 def main(args=None):
