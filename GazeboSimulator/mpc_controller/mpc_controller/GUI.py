@@ -3,10 +3,12 @@ from rclpy.node import Node
 import PySimpleGUI as sg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
+import os
 
 from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Vector3
+from std_msgs.msg import Int32
 
 class GUI(Node):
 
@@ -39,6 +41,7 @@ class GUI(Node):
                 10)
         self.subscription  # prevent unused variable warning
         self.publisher_1 = self.create_publisher(Vector3, '/trajectory_waypoints', 10)
+        self.publisher_control_mode = self.create_publisher(Int32, '/control_mode', 10)
 
         ###### INIT PLOT ############################################################################
         w, h = figsize = (10, 10)     # figure size
@@ -47,7 +50,9 @@ class GUI(Node):
         self.size = (int(w*dpi), int(h*dpi))
         self.ax.grid(True)
         self.ax.set(xlim=(-10, 10), ylim=(-10, 10))
-        self.ax.set_title('Birds eye view of sea')
+        self.ax.set_title('Birds eye view of sea', fontdict={'fontsize': 20})
+        self.ax.set_xlabel('x', fontdict={'fontsize': 15})
+        self.ax.set_ylabel('y', fontdict={'fontsize': 15})
 
         ###### INIT PYSIMPLEGUI ######################################################################
         self.setup_layout()
@@ -80,6 +85,15 @@ class GUI(Node):
             exit(69)
         if event == '-SET_P-': # if user sets a new waypoint
             self.publish_waypoint()
+        if event == '-READ-':
+            self.open_window()
+        mode = Int32()
+        if self.values['-AUTO-'] == True:
+            mode.data = 1
+        else:
+            mode.data = 0
+        self.publisher_control_mode.publish(mode)
+
         self.reinitialize_plot()
 
         ## plot the reference and final destination
@@ -145,7 +159,9 @@ class GUI(Node):
         self.ax.cla()
         self.ax.grid(True)
         self.ax.set(xlim=(-20, 20), ylim=(-20, 20))
-        self.ax.set_title('Birds eye view of sea')
+        self.ax.set_title('Birds eye view of sea', fontdict={'fontsize': 20})
+        self.ax.set_xlabel('x', fontdict={'fontsize': 15})
+        self.ax.set_ylabel('y', fontdict={'fontsize': 15})
 
     def setup_layout(self):
         """"Setup the layout of the GUI"""
@@ -158,7 +174,7 @@ class GUI(Node):
         button_col = "Grey80"
         ind_text_col = '#0000B9'
         ROV_col_width = 17
-        checkbox_spacing_w = 7
+        checkbox_spacing_w = 5
 
         font = 'Ubuntu'
 
@@ -180,51 +196,67 @@ class GUI(Node):
             [sg.Button('Set position', size=(38, 2), font=font, key='-SET_P-', button_color=('black',button_col))],
             [sg.Text('', background_color=background_col)],
             [sg.Text('Attitude reference', size=(50, 1), justification='center', font=(font, 12, "bold"),text_color=text_col, background_color=unclickable_col)],
-            [sg.Text('η ',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-ETA-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='1'),],
-            [sg.Text('ε1',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-EPS1-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),],
-            [sg.Text('ε2',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-EPS2-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),],
-            [sg.Text('ε3',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-EPS3-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),],
+            [sg.Text('η ',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
+            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-ETA-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='1'),
+            sg.Text('            ',font=font, size=(10, 1),text_color=text_col, background_color=background_col),
+            ],
+            [sg.Text('ε1',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
+            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-EPS1-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
+            sg.Text('            ',font=font, size=(10, 1),text_color=text_col, background_color=background_col),
+            ],
+            [sg.Text('ε2',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
+            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-EPS2-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
+            sg.Text('            ',font=font, size=(10, 1),text_color=text_col, background_color=background_col),
+            ],
+            [sg.Text('ε3',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
+            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-EPS3-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
+            sg.Text('            ',font=font, size=(10, 1),text_color=text_col, background_color=background_col),
+            ],
             [sg.Button('Set attitude', size=(38, 2), font=font, key='-SET_A-', button_color=('black', button_col))],
             [sg.Text('', background_color=background_col)],
             [sg.Text('O', background_color=background_col, size=(5, 1), text_color=background_col, justification='center', font=font),
             sg.Text('ROV1', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
-            sg.Text('ROV2', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color="grey"),
-            sg.Text('ROV3', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="grey"),
+            sg.Text('ROV2', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Text('ROV3', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),
             ],
             [sg.Text('X', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
             sg.Text('X', size=(ROV_col_width, 1), justification='center', font=font, key='-X_visual-',text_color=text_col, background_color=ind_text_col),
-            sg.Text('X', size=(ROV_col_width, 1), justification='center', font=font, key='-X_visual2-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color="grey"),
-            sg.Text('X', size=(ROV_col_width, 1), justification='center', font=font, key='-X_visual3-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="grey"),
+            sg.Text('X', size=(ROV_col_width, 1), justification='center', font=font, key='-X_visual2-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Text('X', size=(ROV_col_width, 1), justification='center', font=font, key='-X_visual3-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),
             ],
             [sg.Text('Y', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
             sg.Text('Y', size=(ROV_col_width, 1), justification='center', font=font, key='-Y_visual-',text_color=text_col, background_color=ind_text_col),
-            sg.Text('Y', size=(ROV_col_width, 1), justification='center', font=font, key='-Y_visual2-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color="grey"),
-            sg.Text('Y', size=(ROV_col_width, 1), justification='center', font=font, key='-Y_visual3-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="grey"),
+            sg.Text('Y', size=(ROV_col_width, 1), justification='center', font=font, key='-Y_visual2-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Text('Y', size=(ROV_col_width, 1), justification='center', font=font, key='-Y_visual3-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),
             ],
             [sg.Text('Z', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
             sg.Text('Z', size=(ROV_col_width, 1), justification='center', font=font, key='-Z_visual-',text_color=text_col, background_color=ind_text_col),
-            sg.Text('Z', size=(ROV_col_width, 1), justification='center', font=font, key='-Z_visual2-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color="grey"),
-            sg.Text('Z', size=(ROV_col_width, 1), justification='center', font=font, key='-Z_visual3-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="grey"),
+            sg.Text('Z', size=(ROV_col_width, 1), justification='center', font=font, key='-Z_visual2-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Text('Z', size=(ROV_col_width, 1), justification='center', font=font, key='-Z_visual3-',text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),
             ],
             [sg.Text('Plot\nPath', size=(5, 2), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
-            sg.Text('', size=(checkbox_spacing_w, 2), background_color=background_col),
+            sg.Text('', size=(checkbox_spacing_w, 2), background_color=background_col, font=font,text_color=text_col),
             sg.Checkbox('', default=False, key='-TRAJ1-',text_color="black", font=font, background_color=button_col),
-            sg.Text('', size=(checkbox_spacing_w, 2), background_color=background_col),
-            sg.Text('', size=(checkbox_spacing_w, 2), background_color=background_col),
-            sg.Checkbox('', default=False, key='-TRAJ2-',text_color="black", font=font, background_color=button_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color="grey"),
-            sg.Text('', size=(checkbox_spacing_w, 2), background_color=background_col),
-            sg.Text('', size=(checkbox_spacing_w, 2), background_color=background_col),
-            sg.Checkbox('', default=False, key='-TRAJ3-',text_color="black", font=font, background_color=button_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="grey"),      
+            sg.Text('', size=(checkbox_spacing_w-1, 2), background_color=background_col, font=font,text_color=text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Text('', size=(checkbox_spacing_w+2, 2), background_color=background_col, font=font,text_color=text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Checkbox('', default=False, key='-TRAJ2-',text_color="black", font=font, background_color=button_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Text('', size=(checkbox_spacing_w-2, 2), background_color=background_col, font=font,text_color=text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Text('', size=(checkbox_spacing_w+3, 2), background_color=background_col, font=font,text_color=text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Checkbox('', default=False, key='-TRAJ3-',text_color="black", font=font, background_color=button_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),  
+            sg.Text('', size=(checkbox_spacing_w+1, 2), background_color=background_col, font=font,text_color=text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),    
             ],
+            [sg.Button('Read Parameters', size=(20, 2), font=font, key='-READ-', button_color=('white', 'green'), pad=((0, 0), (10, 0)))],
+            [sg.Radio('Manual (Joystick)               ', "Control_mode", default=False,text_color="black", font=font, background_color=button_col, size=(30, 1))],
+            [sg.Radio('Autonomous (Trajectory planning)', "Control_mode", key='-AUTO-',text_color="black", font=font, background_color=button_col, default=True, size=(30, 1))],
             [sg.Text('', background_color=background_col)],
-            [sg.Button('Exit', size=(20, 2), font=font, key='-EXIT-', button_color=('white', 'red'), pad=((0, 0), (10, 0)))],
+            [sg.Button('Exit', size=(20, 2), font=font, key='-EXIT-', button_color=('white', 'red'), pad=((0, 0), (10, 0)))]
             ]
         self.sec_col = [
             [sg.Canvas(size=self.size, key='-CANVAS-', background_color='white')],
         ]
         sg.theme('DarkTanBlue')
         self.layout = [
-            [sg.Column(self.first_col,background_color=background_col),
+            [sg.Column(self.first_col,background_color=background_col, element_justification='center'),
              sg.VSeperator(),
              sg.Column(self.sec_col, background_color='white'),]
         ]
@@ -270,6 +302,34 @@ class GUI(Node):
     def ref_callback(self, msg):
         """Callback function for reference topic"""
         self.traj_reference = [msg.x, msg.y, msg.z]
+
+    def open_window(self):
+        """Opens a new window with parameters"""
+        cwd = os.getcwd()
+        params_path = cwd + "/src/mpc_controller/params/params.yaml"
+        with open(str(params_path)) as my_file:
+            docu = []
+            for line in my_file:
+                docu.append(line)
+        layout = [
+            [sg.Text("Parameters", font=("Helvetica", 25), text_color="white")],
+            [sg.Text(docu[2])],
+            [sg.Text(docu[3])],
+            [sg.Text(docu[4])],
+            [sg.Text(docu[5])],
+            [sg.Text(docu[6])],
+            [sg.Text(docu[7])],
+            [sg.Text(docu[8])],
+            [sg.Button("Exit", key="Exit")]
+        ]
+        window = sg.Window("Parameters", layout, modal=True)
+        choice = None
+        while True:
+            event, values = window.read()
+            if event == "Exit" or event == sg.WIN_CLOSED:
+                break
+        
+        window.close()
         
 
     def draw_figure(self,canvas, figure):
