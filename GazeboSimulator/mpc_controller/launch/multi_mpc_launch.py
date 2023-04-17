@@ -31,8 +31,7 @@ def multi_launch(context, *args, **kwargs):
             namespace='bluerov{}_mpc'.format(agent_id+2),
             name='bluerov{}'.format(agent_id+2),
             executable='bluerov_mpc',
-            #output='screen',
-            #prefix=['gnome-terminal --command gdb'],
+            output='screen' if (agent_id+2) == param['debug_rov'] else "log",
             parameters= [param,
             {
                 'main_id': agent_id+2,
@@ -45,13 +44,15 @@ def multi_launch(context, *args, **kwargs):
     trajectory_node = Node(
        package='mpc_controller',
        executable='setpoint',
-       output='screen'
+       output='log',
+       parameters=[param]
     )
     launch_agents.append(trajectory_node)
 
     gui_node = Node(
         package='mpc_controller',
         executable='GUI',
+        output='log',
         parameters=[
         {
             'fleet_quantity': multi_agent    

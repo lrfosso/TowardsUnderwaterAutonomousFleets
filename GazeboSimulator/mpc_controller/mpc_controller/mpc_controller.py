@@ -226,6 +226,7 @@ class BluerovPubSubNode(Node):
     def publisher_callback(self):
         """Running the MPC and publishing the thrusts"""
         # Making MPC step
+
         if(self.ready_signal_mpc): #If the odometry is ready
             self.u0_1 = self.mpc1.mpc.make_step(self.x0)
 
@@ -249,8 +250,7 @@ class BluerovPubSubNode(Node):
             
             
 
-            self.publisher_1.publish(thrust1
-            )
+            self.publisher_1.publish(thrust1)
             self.publisher_2.publish(thrust2)
             self.publisher_3.publish(thrust3)
             self.publisher_4.publish(thrust4)

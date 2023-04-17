@@ -105,7 +105,7 @@ class GUI(Node):
 
         ## update the canvas with ROV1
         if self.values['-TRAJ1-'] == True:
-            if(len(self.trajectory_log_1[0]) > 2000):
+            if(len(self.trajectory_log_1[0]) > 2000 and len(self.trajectory_log_1[0]) > 0):
                 self.trajectory_log_1[0].pop(0)
                 self.trajectory_log_1[1].pop(0)
             self.trajectory_log_1[0].append(self.odom1.x)
@@ -117,9 +117,9 @@ class GUI(Node):
         ## update the canvas with ROV2
         if self.n_agents > 1:
             if self.values['-TRAJ2-'] == True:
-                if(len(self.trajectory_log_2[0]) > 2000):
-                    self.trajectory_log_1[0].pop(0)
-                    self.trajectory_log_1[1].pop(0)
+                if(len(self.trajectory_log_2[0]) > 2000 and len(self.trajectory_log_2[0]) > 0):
+                    self.trajectory_log_2[0].pop(0)
+                    self.trajectory_log_2[1].pop(0)
                 self.trajectory_log_2[0].append(self.pos2[0])
                 self.trajectory_log_2[1].append(self.pos2[1])
             else:
@@ -129,9 +129,9 @@ class GUI(Node):
         ## update the canvas with ROV3
         if self.n_agents > 2:
             if self.values['-TRAJ3-'] == True:
-                if(len(self.trajectory_log_3[0]) > 2000):
-                    self.trajectory_log_1[0].pop(0)
-                    self.trajectory_log_1[1].pop(0)
+                if(len(self.trajectory_log_3[0]) > 2000 and len(self.trajectory_log_3[0]) > 0):
+                    self.trajectory_log_3[0].pop(0)
+                    self.trajectory_log_3[1].pop(0)
                 self.trajectory_log_3[0].append(self.pos3[0])
                 self.trajectory_log_3[1].append(self.pos3[1])
             else:
