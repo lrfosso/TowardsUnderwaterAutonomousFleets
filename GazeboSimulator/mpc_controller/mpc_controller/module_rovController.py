@@ -122,34 +122,69 @@ class MyController():
 
         ### Setting the constraints
         # Non-linear constraints
-        if(FOV_constraint and (n_multi_agent>1)):
-            self.mpc.set_nl_cons("FOV",
-                2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
-                +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
-                +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
-                , ub=0, soft_constraint=True, penalty_term_cons=35
-                )
+        #if(FOV_constraint):
+        #    self.mpc.set_nl_cons("FOV",
+        #        2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
+        #        +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
+        #        +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
+        #        , ub=0, soft_constraint=True, penalty_term_cons=35
+        #        )
         penalty_term_distance = [30, 85, 85, 95, 95, 95]
         if(n_multi_agent>1):
             self.mpc.set_nl_cons("Distance2", 
-            (distance_rovs**2-((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)), 
-            ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
+                (distance_rovs**2-((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)), 
+                ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
+            if(FOV_constraint):
+                self.mpc.set_nl_cons("FOV1",
+                    2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
+                    , ub=0, soft_constraint=True, penalty_term_cons=35
+                    )
         if(n_multi_agent>2):
             self.mpc.set_nl_cons("Distance3", 
-            (distance_rovs**2-((_tvp_rov1['x_3']-_x_rov1['x'])**2+(_tvp_rov1['y_3']-_x_rov1['y'])**2+(_tvp_rov1['z_3']-_x_rov1['z'])**2)), 
-            ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
+                (distance_rovs**2-((_tvp_rov1['x_3']-_x_rov1['x'])**2+(_tvp_rov1['y_3']-_x_rov1['y'])**2+(_tvp_rov1['z_3']-_x_rov1['z'])**2)), 
+                ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
+            if(FOV_constraint):
+                self.mpc.set_nl_cons("FOV2",
+                    2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_3']-_x_rov1['x'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_3']-_x_rov1['y'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_3']-_x_rov1['z'])))
+                    , ub=0, soft_constraint=True, penalty_term_cons=35
+                    )
         if(n_multi_agent>3):
             self.mpc.set_nl_cons("Distance4", 
                 (distance_rovs**2-((_tvp_rov1['x_4']-_x_rov1['x'])**2+(_tvp_rov1['y_4']-_x_rov1['y'])**2+(_tvp_rov1['z_4']-_x_rov1['z'])**2)), 
                 ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
+            if(FOV_constraint):
+                self.mpc.set_nl_cons("FOV3",
+                    2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_4']-_x_rov1['x'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_4']-_x_rov1['y'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_4']-_x_rov1['z'])))
+                    , ub=0, soft_constraint=True, penalty_term_cons=35
+                    )
         if(n_multi_agent>4):
             self.mpc.set_nl_cons("Distance5", 
                 (distance_rovs**2-((_tvp_rov1['x_5']-_x_rov1['x'])**2+(_tvp_rov1['y_5']-_x_rov1['y'])**2+(_tvp_rov1['z_5']-_x_rov1['z'])**2)), 
                 ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
+            if(FOV_constraint):
+                self.mpc.set_nl_cons("FOV4",
+                    2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_5']-_x_rov1['x'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_5']-_x_rov1['y'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_5']-_x_rov1['z'])))
+                    , ub=0, soft_constraint=True, penalty_term_cons=35
+                    )
         if(n_multi_agent>5):
             self.mpc.set_nl_cons("Distance6", 
                 (distance_rovs**2-((_tvp_rov1['x_6']-_x_rov1['x'])**2+(_tvp_rov1['y_6']-_x_rov1['y'])**2+(_tvp_rov1['z_6']-_x_rov1['z'])**2)), 
                 ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
+            if(FOV_constraint):
+                self.mpc.set_nl_cons("FOV5",
+                    2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_6']-_x_rov1['x'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_6']-_x_rov1['y'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_6']-_x_rov1['z'])))
+                    , ub=0, soft_constraint=True, penalty_term_cons=35
+                    )
   
         # Boundary constraints
         self.mpc.bounds['lower', '_u', 'u_1'] = - 10
