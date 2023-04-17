@@ -43,6 +43,12 @@ class SetpointPublisher(Node):
 
     def __init__(self):
         super().__init__('setpoint_publisher')
+        self.declare_parameter('debug_rov')
+
+        # Get parameters
+        # self. = self.get_parameter('').get_parameter_value().
+        self.debug_rov = self.get_parameter('debug_rov').get_parameter_value().integer_value
+
         self.j = 0 # tracker for which waypoint is active
         self.i = 0 # no. times timer callback has been called
         
@@ -132,7 +138,8 @@ class SetpointPublisher(Node):
                     msg.z = self.cubic_trajectory_generation(self.a_z,current_time)
                 
             self.publisher_.publish(msg)
-            self.get_logger().info('Publishing: x:"%s", y:"%s", z:"%s"' %( msg.x,msg.y,msg.z))
+            if self.debug_rov < 2:
+                self.get_logger().info('Publishing: x:"%s", y:"%s", z:"%s"' %( msg.x,msg.y,msg.z))
 
 
 def main(args=None):
