@@ -42,6 +42,7 @@ class GUI(Node):
         self.subscription  # prevent unused variable warning
         self.publisher_1 = self.create_publisher(Vector3, '/trajectory_waypoints', 10)
         self.publisher_control_mode = self.create_publisher(Int32, '/control_mode', 10)
+        self.publisher_standard_test = self.create_publisher(Int32, '/std_test', 10)
 
         ###### INIT PLOT ############################################################################
         w, h = figsize = (10, 7)     # figure size
@@ -75,6 +76,9 @@ class GUI(Node):
         self.final_dest_x = 0
         self.final_dest_y = 0
 
+        self.std_test = Int32()
+        self.std_test.data = 0
+
 
 
     def ROV1_main_callback(self, msg):
@@ -88,14 +92,35 @@ class GUI(Node):
             self.publish_waypoint()
         if event == '-READ-':
             self.open_window()
-        mode = Int32()
-        if self.values['-AUTO-'] == True:
-            mode.data = 1
-        else:
-            mode.data = 0
-        self.publisher_control_mode.publish(mode)
         if event == '-SET_CUR-':
             self.set_ocean_current()
+        
+
+        if event == '-TEST1-':
+            self.std_test.data = 1
+        if event == '-TEST2-':
+            self.std_test.data = 2
+        if event == '-TEST3-':
+            self.std_test.data = 3
+        if event == '-TEST4-':
+            self.std_test.data = 4
+        self.publisher_standard_test.publish(self.std_test)
+
+        useable_col = ('black',"Grey80")
+        unuseable_col = ('black',"Blue4")
+        mode = Int32()
+        if True == self.values['-JOYSTICK-']:
+            mode.data = 0
+            self.JOY_mode(useable_col, unuseable_col)
+        elif True == self.values['-TRAJECTORY-']:
+            mode.data = 1
+            self.TRAJECTORY_mode(useable_col, unuseable_col)
+        else:
+            mode.data = 0
+            self.STANDARD_TEST_mode(useable_col, unuseable_col)
+        self.publisher_control_mode.publish(mode)
+
+        
 
         self.reinitialize_plot()
 
@@ -185,6 +210,11 @@ class GUI(Node):
         self.first_col = [
             [sg.Text('ROV Simulator Settings', size=(28, 1), justification='center', font=(font, 25, "bold"),text_color=text_col, background_color=unclickable_col)],
             [sg.Text('', background_color=background_col)],
+            [sg.Text('Control mode', size=(55, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),],
+            [sg.Radio('Manual (Joystick)               ', "Control_mode", key='-JOYSTICK-', default=False,text_color="black", font=font, background_color=button_col, size=(50, 1))],
+            [sg.Radio('Autonomous (Trajectory planning)', "Control_mode", key='-TRAJECTORY-',text_color="black", font=font, background_color=button_col, default=True, size=(50, 1))],
+            [sg.Radio('Standard test                   ', "Control_mode", key='-STANDARD_TEST-',text_color="black", font=font, background_color=button_col, default=False, size=(50, 1))],
+            [sg.Text('', background_color=background_col)],
             [sg.Text('Position waypoint', size=(50, 1), justification='center', font=(font, 12, "bold"),text_color=text_col, background_color=unclickable_col)],
             [sg.Text('X:',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
             sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-X-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
@@ -199,24 +229,11 @@ class GUI(Node):
             sg.Text('   0 < Z < 15',font=font, size=(10, 1),text_color=text_col, background_color=background_col),],
             [sg.Button('Set position', size=(38, 2), font=font, key='-SET_P-', button_color=('black',button_col))],
             [sg.Text('', background_color=background_col)],
-            [sg.Text('Attitude reference', size=(50, 1), justification='center', font=(font, 12, "bold"),text_color=text_col, background_color=unclickable_col)],
-            [sg.Text('η ',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
-            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-ETA-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='1'),
-            sg.Text('            ',font=font, size=(10, 1),text_color=text_col, background_color=background_col),
-            ],
-            [sg.Text('ε1',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
-            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-EPS1-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
-            sg.Text('            ',font=font, size=(10, 1),text_color=text_col, background_color=background_col),
-            ],
-            [sg.Text('ε2',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
-            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-EPS2-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
-            sg.Text('            ',font=font, size=(10, 1),text_color=text_col, background_color=background_col),
-            ],
-            [sg.Text('ε3',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
-            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-EPS3-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
-            sg.Text('            ',font=font, size=(10, 1),text_color=text_col, background_color=background_col),
-            ],
-            [sg.Button('Set attitude', size=(38, 2), font=font, key='-SET_A-', button_color=('black', button_col))],
+            [sg.Text('Standard test', size=(50, 1), justification='center', font=(font, 12, "bold"),text_color=text_col, background_color=unclickable_col)],
+            [sg.Button('Test 1', size=(20, 1), font=font, key='-TEST1-', button_color=('black', button_col)),
+            sg.Button('Test 2', size=(20, 1), font=font, key='-TEST2-', button_color=('black', button_col))],
+            [sg.Button('Test 3', size=(20, 1), font=font, key='-TEST3-', button_color=('black', button_col)),
+            sg.Button('Test 4', size=(20, 1), font=font, key='-TEST4-', button_color=('black', button_col))],
             [sg.Text('', background_color=background_col)],
             [sg.Text('O', background_color=background_col, size=(5, 1), text_color=background_col, justification='center', font=font),
             sg.Text('ROV1', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
@@ -249,10 +266,6 @@ class GUI(Node):
             sg.Checkbox('', default=False, key='-TRAJ3-',text_color="black", font=font, background_color=button_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),  
             sg.Text('', size=(checkbox_spacing_w+1, 2), background_color=background_col, font=font,text_color=text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color=background_col),    
             ],
-            [sg.Text('Control mode', size=(55, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),],
-            [sg.Radio('Manual (Joystick)               ', "Control_mode", default=False,text_color="black", font=font, background_color=button_col, size=(50, 1))],
-            [sg.Radio('Autonomous (Trajectory planning)', "Control_mode", key='-AUTO-',text_color="black", font=font, background_color=button_col, default=True, size=(50, 1))],
-            [sg.Text('', background_color=background_col)],
             [sg.Button('Read System Parameters', size=(9, 2), font=font, key='-READ-', button_color=('black', button_col), pad=((0, 0), (10, 0))),
             sg.Text('', background_color=background_col, size=(20, 1)),
             sg.Button('Exit', size=(25, 2), font=font, key='-EXIT-', button_color=('white', 'red'), pad=((0, 0), (10, 0)))
@@ -330,6 +343,60 @@ class GUI(Node):
             os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: {}, y:{}, z:{}'".format(self.values['-CUR_X-'], self.values['-CUR_Y-'], self.values['-CUR_Z-']))
             
         invalid = False
+
+    def JOY_mode(self,useable_col, unuseable_col):
+        """Setting up GUI for joystick control mode"""
+        self.window['-TEST1-'].update(button_color = unuseable_col)
+        self.window['-TEST2-'].update(button_color = unuseable_col)
+        self.window['-TEST3-'].update(button_color = unuseable_col)
+        self.window['-TEST4-'].update(button_color = unuseable_col)
+        self.window['-TEST1-'].update(disabled=True)
+        self.window['-TEST2-'].update(disabled=True)
+        self.window['-TEST3-'].update(disabled=True)
+        self.window['-TEST4-'].update(disabled=True)
+
+        self.window['-SET_P-'].update(button_color = unuseable_col)
+        self.window['-SET_P-'].update(disabled=True)
+
+        self.window['-X-'].update(disabled=True)
+        self.window['-Y-'].update(disabled=True)
+        self.window['-Z-'].update(disabled=True)
+
+    def TRAJECTORY_mode(self, useable_col, unuseable_col):
+        """Setting up GUI for trajectory control mode"""
+        self.window['-TEST1-'].update(button_color = unuseable_col)
+        self.window['-TEST2-'].update(button_color = unuseable_col)
+        self.window['-TEST3-'].update(button_color = unuseable_col)
+        self.window['-TEST4-'].update(button_color = unuseable_col)
+        self.window['-TEST1-'].update(disabled=True)
+        self.window['-TEST2-'].update(disabled=True)
+        self.window['-TEST3-'].update(disabled=True)
+        self.window['-TEST4-'].update(disabled=True)
+
+        self.window['-SET_P-'].update(button_color = useable_col)
+        self.window['-SET_P-'].update(disabled=False)
+
+        self.window['-X-'].update(disabled=False)
+        self.window['-Y-'].update(disabled=False)
+        self.window['-Z-'].update(disabled=False)
+
+    def STANDARD_TEST_mode(self, useable_col, unuseable_col):
+        """Setting up GUI for standard test control mode"""
+        self.window['-TEST1-'].update(button_color = useable_col)
+        self.window['-TEST2-'].update(button_color = useable_col)
+        self.window['-TEST3-'].update(button_color = useable_col)
+        self.window['-TEST4-'].update(button_color = useable_col)
+        self.window['-TEST1-'].update(disabled=False)
+        self.window['-TEST2-'].update(disabled=False)
+        self.window['-TEST3-'].update(disabled=False)
+        self.window['-TEST4-'].update(disabled=False)
+
+        self.window['-SET_P-'].update(button_color = unuseable_col)
+        self.window['-SET_P-'].update(disabled=True)
+
+        self.window['-X-'].update(disabled=True)
+        self.window['-Y-'].update(disabled=True)
+        self.window['-Z-'].update(disabled=True)
 
     def ROV2_odom_callback(self, msg):
         """Callback function for odometry2 topic"""
