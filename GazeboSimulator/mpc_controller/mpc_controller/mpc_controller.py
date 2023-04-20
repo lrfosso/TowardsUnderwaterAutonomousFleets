@@ -14,7 +14,8 @@ from geometry_msgs.msg import Vector3
 from module_rovModel import *
 from module_rovController import *
 import logging
-
+import csv
+from datetime import datetime
 class BluerovPubSubNode(Node):
     def __init__(self):
         super().__init__('bluerov_pubsub')
@@ -43,7 +44,14 @@ class BluerovPubSubNode(Node):
         self.FOV_range_deg = self.get_parameter('FOV_range_deg').get_parameter_value().double_value
         self.FOV_range_soft_deg = self.get_parameter('FOV_range_soft_deg').get_parameter_value().double_value
         self.cycle_time_publish = self.get_parameter('cycle_time_publish').get_parameter_value().double_value
-
+        
+        self.sec = 0
+        self.nanosec = 0
+        self.angle2 = 0
+        self.angle3 = 0
+        self.std_test = 0
+        self.control_mode = 0
+        self.dt_string = 0
         # Initialize the MPC
         #self.FOV_constraint = True
         self.modelRov = MyROVModel()
@@ -67,10 +75,24 @@ class BluerovPubSubNode(Node):
             "/ref",
             self.reference_callback, #Callback function
             10) 
-        self.ocean_current_subsriber = self.create_subscription(Vector3,
-            "/ocean_current",
-            self.ocean_current_callback,
+        
+        self.clock_subscriber = self.create_subscription(  
+            Vector3,
+            "/clock",
+            self.clock_callback, #Callback function
+            10) 
+        
+        self.control_mode_subscriber = self.create_subscription(  
+            Vector3,
+            "/control_mode",
+            self.control_mode_callback, #Callback function
             10)
+        self.std_test_subscriber = self.create_subscription(  
+            Vector3,
+            "/std_test",
+            self.std_test_callback, #Callback function
+            10)
+        #Creating publishers for the thrusters
         #Creating publishers for the thrusters
         self.publisher_1 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster1_joint/cmd_thrust'.format(self.main_id), 10)
         self.publisher_2 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster2_joint/cmd_thrust'.format(self.main_id), 10)
@@ -121,6 +143,7 @@ class BluerovPubSubNode(Node):
         #        self.odometry_callback_6, #function?
         #        10)
 
+
         self.main_odometry_subscriber #Prevent unused variable warning
         cycle_time_publish = 0.05  # seconds
         self.timer = self.create_timer(cycle_time_publish, self.publisher_callback)
@@ -144,6 +167,16 @@ class BluerovPubSubNode(Node):
         z = 2*(e1*e3-e2*q0)
         return [x, y, z]
     
+    def clock_callback(self, msg):
+        self.sec = msg.sec  
+        self.nanosec = msg.nanosec  
+
+    def control_mode_callback(self,msg):
+        self.control_mode = msg.data
+
+    def std_test_callback(self, msg):
+        self.std_test = msg.data
+
     def reference_callback(self,msg):
         """Subscriber function for the reference topic"""
         self.mpc1.x_setp = msg.x
@@ -185,8 +218,15 @@ class BluerovPubSubNode(Node):
                               msg.twist.twist.angular.y,
                               msg.twist.twist.angular.z]
         self.x0 = np.array(self.odometry_list)
-
+        with open((str(self.dt_string) + 'data{}.csv'.format(str(self.main_id))), 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test])
         if(not self.ready_signal_mpc): #First cycle
+            now = datetime.now()
+            self.dt_string = now.strftime("C%H_%M_%S_D%d_%m_%y")
+            with open((str(self.dt_string) + 'data{}.csv'.format(str(self.main_id))), 'w') as f:
+                writer = csv.writer(f)
+                writer.writerow(['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test'])
             self.mpc1.x0 = self.x0
             self.mpc1.mpc.set_initial_guess()
             self.ready_signal_mpc = True
@@ -200,7 +240,8 @@ class BluerovPubSubNode(Node):
             v1 = self.vector_between_rovs(self.x0[0], self.x0[1], self.x0[2], msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z)
             v2 = self.x_directional_vector_from_quaternion(self.x0[3], self.x0[4], self.x0[5], self.x0[6])
             angle = Float64()
-            angle.data = round(((180*(np.arccos(np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2)))))/np.pi),2)
+            self.angle2 = round(((180*(np.arccos(np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2)))))/np.pi),2)
+            angle.data = self.angle2
             self.angle_publisher.publish(angle)
 
     def odometry_callback_3(self, msg):
@@ -212,7 +253,8 @@ class BluerovPubSubNode(Node):
             v1 = self.vector_between_rovs(self.x0[0], self.x0[1], self.x0[2], msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z)
             v2 = self.x_directional_vector_from_quaternion(self.x0[3], self.x0[4], self.x0[5], self.x0[6])
             angle = Float64()
-            angle.data = round(((180*(np.arccos(np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2)))))/np.pi),2)
+            self.angle3 = round(((180*(np.arccos(np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2)))))/np.pi),2)
+            angle.data = self.angle3
             self.angle_publisher2.publish(angle)
     
     #def odometry_callback_4(self, msg):
@@ -232,22 +274,6 @@ class BluerovPubSubNode(Node):
     #    self.mpc1.x_6 = msg.pose.pose.position.x
     #    self.mpc1.y_6 = msg.pose.pose.position.y
     #    self.mpc1.z_6 = msg.pose.pose.position.z
-
-    def ocean_current_callback(self, msg):
-        v_e = 1*np.array([[msg.x],[msg.y],[msg.z]]) #Ocean current in ENU
-        enu_to_ned = np.array([[0,1,0],[1,0,0],[0,0,-1]]) # ENU TO NED ROTATION MATRIX
-        rot_quat = np.diag((1,1,1)) + 2*self.x0[3]*skew(self.x0[4:7]) + 2*skew(self.x0[4:7])**2 #QUATERNION ROTATION MATRIX
-        ned_to_enu = np.transpose(enu_to_ned) # NED TO ENU
-        transp_rot_quat = np.transpose(rot_quat) #NED TO BODY
-        nu_c = transp_rot_quat@ned_to_enu@v_e 
-        print(nu_c)
-        self.mpc1.u_c = nu_c[0,0]
-        self.mpc1.v_c = nu_c[1,0]
-        self.mpc1.w_c = nu_c[2,0]
-
-        #self.mpc1.u_c = nu_c[0,0]
-        #self.mpc1.v_c = nu_c[1,0]
-        #self.mpc1.w_c = 0
 
     def publisher_callback(self):
         """Running the MPC and publishing the thrusts"""
