@@ -29,6 +29,9 @@ class MyController():
         self.x_3 = 0 
         self.y_3 = 0
         self.z_3 = 0
+        self.u_c = 0
+        self.v_c = 0
+        self.w_c = 0
 #        self.x_4 = 0 
 #        self.y_4 = 0
 #        self.z_4 = 0
@@ -231,6 +234,9 @@ class MyController():
             tvp_template['_tvp',k,'x_3'] =  self.x_3
             tvp_template['_tvp',k,'y_3'] =  self.y_3
             tvp_template['_tvp',k,'z_3'] =  self.z_3
+            tvp_template['_tvp',k,'u_c'] =  self.u_c
+            tvp_template['_tvp',k,'v_c'] =  self.v_c
+            tvp_template['_tvp',k,'w_c'] =  self.w_c
 #            tvp_template['_tvp',k,'x_4'] =  self.x_4
 #            tvp_template['_tvp',k,'y_4'] =  self.y_4
 #            tvp_template['_tvp',k,'z_4'] =  self.z_4

@@ -67,7 +67,10 @@ class BluerovPubSubNode(Node):
             "/ref",
             self.reference_callback, #Callback function
             10) 
-        
+        self.ocean_current_subsriber = self.create_subscription(Vector3,
+            "/ocean_current",
+            self.ocean_current_callback,
+            10)
         #Creating publishers for the thrusters
         self.publisher_1 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster1_joint/cmd_thrust'.format(self.main_id), 10)
         self.publisher_2 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster2_joint/cmd_thrust'.format(self.main_id), 10)
@@ -230,6 +233,22 @@ class BluerovPubSubNode(Node):
     #    self.mpc1.x_6 = msg.pose.pose.position.x
     #    self.mpc1.y_6 = msg.pose.pose.position.y
     #    self.mpc1.z_6 = msg.pose.pose.position.z
+
+    def ocean_current_callback(self, msg):
+        v_e = 1*np.array([[msg.x],[msg.y],[msg.z]]) #Ocean current in ENU
+        enu_to_ned = np.array([[0,1,0],[1,0,0],[0,0,-1]]) # ENU TO NED ROTATION MATRIX
+        rot_quat = np.diag((1,1,1)) + 2*self.x0[3]*skew(self.x0[4:7]) + 2*skew(self.x0[4:7])**2 #QUATERNION ROTATION MATRIX
+        ned_to_enu = np.transpose(enu_to_ned) # NED TO ENU
+        transp_rot_quat = np.transpose(rot_quat) #NED TO BODY
+        nu_c = transp_rot_quat@ned_to_enu@v_e 
+        print(nu_c)
+        self.mpc1.u_c = nu_c[0,0]
+        self.mpc1.v_c = nu_c[1,0]
+        self.mpc1.w_c = nu_c[2,0]
+
+        #self.mpc1.u_c = nu_c[0,0]
+        #self.mpc1.v_c = nu_c[1,0]
+        #self.mpc1.w_c = 0
 
     def publisher_callback(self):
         """Running the MPC and publishing the thrusts"""
