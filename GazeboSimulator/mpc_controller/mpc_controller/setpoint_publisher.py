@@ -20,6 +20,36 @@ class SetpointPublisher(Node):
         x = 5*cos(t/100)
         y = 5*sin(t/100)
         return x,y,z 
+
+    def torus(self,t):
+        #Moves in a spiral shape around a torus of diameter 5
+        z = 1*sin(pi*t/25)+2
+        x = 5*cos(t/100) + 1*cos(pi*t/25)
+        y = 5*sin(t/100) + 1*sin(pi*t/25)
+        return x,y,z 
+    def line(self,t):
+        msg.x = cubic_trajectory_generation(x,t)
+        msg.y = cubic_trajectory_generation(y,t)
+        msg.z = cubic_trajectory_generation(z,t)
+    def cubic_trajectory_parameter_generation(self,x0,dx0,x1,dx1, t0, t1):
+        # Returns a vector of coefficients that generate a cubic polynomial that satisfies the constraints
+        A =array([[1,t0, t0**2, t0**3],
+                    [0, 1, 2*t0, 3*t0**2],
+                    [1, t1, t1**2, t1**3],
+                    [0, 1, 2*t1, 3*t1**2]])
+    
+        y = array([x0,dx0,x1,dx1]).reshape(-1,1)
+        b = (linalg.inv(A)@y).reshape(1,-1)
+        b = b[0]
+        print(b)
+        return (b[0],b[1],b[2],b[3])
+        
+
+    def cubic_trajectory_generation(self,a,t):
+        #returns the setpoint value at a given time t with parameters a
+        qt = a[0] + a[1]*t + a[2]*t**2 + a[3]*t**3
+        return float(qt)
+
     
     def cubic_trajectory_parameter_generation(self,x0,dx0,x1,dx1, t0, t1):
         # Returns a vector of coefficients that generate a cubic polynomial that satisfies the constraints
@@ -52,8 +82,8 @@ class SetpointPublisher(Node):
         self.j = 0 # tracker for which waypoint is active
         self.i = 0 # no. times timer callback has been called
         
-        self.control_mode = 1 #control mode initialized to trajectory
-	
+        self.control_mode = 2 #control mode initialized to trajectory
+        self.std_test = 2 # Standard tests
         self.wp_x = [] #waypoint lists
         self.wp_y = []
         self.wp_z = []
@@ -73,17 +103,26 @@ class SetpointPublisher(Node):
             10)
             
         self.control_subscriber = self.create_subscription(  # Creates a subscription to the trajectory waypoints topic
-            Int32, #Message type vector of 3 floats
+            Int32, #Integer message type
             "/control_mode", #Topic
             self.control_mode_callback, #function?
             10)
             
+        self.std_test_subscriber = self.create_subscription(  # Creates a subscription to the trajectory waypoints topic
+            Int32, #Integer message type
+            "/std_test", #Topic
+            self.std_test_callback, #function?
+            10)
     def control_mode_callback(self, msg):
-        self.control_mode = msg.data
+        #self.control_mode = msg.data
+        pass
+
+    def std_test_callback(self, msg):
+        self.std_test = msg.data
 
     def trajectory_callback(self, msg): # append waypoints to waypoint list
 
-        avg_speed = 0.3 # average speed in m/s, used to calculate time to each setpoint
+        avg_speed = 0.4 # average speed in m/s, used to calculate time to each setpoint
 
         if(len(self.wp_x) == 0): # if first waypoint, append and exit function
             self.wp_x.append(msg.x)
@@ -106,9 +145,9 @@ class SetpointPublisher(Node):
         self.wp_z.append(msg.z)
 
     def timer_callback(self):
-    	if (self.control_mode == 1):
-            current_time = self.i * self.timer_period #
-            msg = Vector3()
+        current_time = self.i * self.timer_period #
+        msg = Vector3()
+        if (self.control_mode == 1):
 		    #msg.x,msg.y,msg.z = self.sine_wave(self.i)
             
             print(self.wp_t)
@@ -138,8 +177,27 @@ class SetpointPublisher(Node):
                     msg.z = self.cubic_trajectory_generation(self.a_z,current_time)
                 
             self.publisher_.publish(msg)
-            if self.debug_rov < 2:
-                self.get_logger().info('Publishing: x:"%s", y:"%s", z:"%s"' %( msg.x,msg.y,msg.z))
+
+        elif (self.control_mode  == 2):
+            self.get_logger().info('hello')
+            match self.std_test:
+                case 1:
+                    msg.x, msg.y, msg.z = self.sine_wave(current_time)
+                case 2:
+                    msg.x, msg.y, msg.z = self.torus(current_time) 
+                #case 3:
+                    #avg_speed = 0.3 #m/s
+                    #delta_t = sqrt(5**2 + 5**2 + 2**2)/avg_speed
+                    #x = cubic_trajectory_parameter_generation(0,0,5,0,t,t + delta_t)
+                    #y = cubic_trajectory_parameter_generation(0,0,5,0,t,t + delta_t)
+                    #z = cubic_trajectory_parameter_generation(0,0,2,0,t,t + delta_t)
+                    #msg.x, msg.y, msg.z = line(current_time)
+            self.publisher_.publish(msg)
+            self.i += 1
+        if self.debug_rov < 2:
+            self.get_logger().info('Publishing: x:"%s", y:"%s", z:"%s"' %( msg.x,msg.y,msg.z))
+            
+
 
 
 def main(args=None):
