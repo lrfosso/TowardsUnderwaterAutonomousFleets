@@ -93,6 +93,7 @@ class BluerovPubSubNode(Node):
                 10)
             self.sec_rov = multi_agent_id[self.main_id-self.fleet_quantity-1]  ## TO BE REMOVED AT A LATER STAGE
             multi_agent_id.pop(self.main_id-self.fleet_quantity-1)
+            self.angle_publisher = self.create_publisher(Float64, 'angle/from_{}_to_{}'.format(self.main_id, self.sec_rov), 10) ## TO BE REMOVED AT A LATER STAGE
         if(self.fleet_quantity > 2):
             self.odometry_3_subscriber = self.create_subscription( 
                 Odometry, #Message type
@@ -100,6 +101,7 @@ class BluerovPubSubNode(Node):
                 self.odometry_callback_3, #function?
                 10)
             self.third_rov = multi_agent_id[0]  ## TO BE REMOVED AT A LATER STAGE
+            self.angle_publisher2 = self.create_publisher(Float64, 'angle/from_{}_to_{}'.format(self.main_id, self.third_rov), 10) ## TO BE REMOVED AT A LATER STAGE
         #if(self.fleet_quantity > 3):
         #    self.odometry_4_subscriber = self.create_subscription( 
         #        Odometry, #Message type
@@ -118,9 +120,6 @@ class BluerovPubSubNode(Node):
         #        "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[3]), #Topic
         #        self.odometry_callback_6, #function?
         #        10)
-
-        self.angle_publisher = self.create_publisher(Float64, 'angle/from_{}_to_{}'.format(self.main_id, self.sec_rov), 10) ## TO BE REMOVED AT A LATER STAGE
-        self.angle_publisher2 = self.create_publisher(Float64, 'angle/from_{}_to_{}'.format(self.main_id, self.third_rov), 10) ## TO BE REMOVED AT A LATER STAGE
 
         self.main_odometry_subscriber #Prevent unused variable warning
         cycle_time_publish = 0.05  # seconds
