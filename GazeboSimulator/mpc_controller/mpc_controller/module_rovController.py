@@ -58,9 +58,10 @@ class MyController():
                                  _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
                                  _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
             case 2: #Two agents
-                mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
-                12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
-                + 70*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
+                mterm = ((35*(_x_rov1['x']-_tvp_rov1['x_sp'])**2
+                + 35*(_x_rov1['y']-_tvp_rov1['y_sp'])**2
+                + 35*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
+                + 20*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
                 +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
                 +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
                 +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2
@@ -129,7 +130,7 @@ class MyController():
         self.mpc.set_objective(mterm=mterm,lterm=lterm)
 
         #                        2   3  
-        penalty_term_distance = [110,500]
+        penalty_term_distance = [70, 500]
         penalty_term_FOV =      [70, 220]
         if(n_multi_agent>1):
             self.mpc.set_nl_cons("Distance2", 
