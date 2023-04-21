@@ -254,12 +254,12 @@ class BluerovPubSubNode(Node):
 
         if(self.record_data and self.ready_signal_mpc):
             if(not self.make_file):
-                with open((str('dataresultat/'+self.dt_string) + self.filename_data+'--rov{}.csv'.format(str(self.main_id))), 'w') as f:
+                with open((str('csv_data/'+self.dt_string) + self.filename_data+'--rov{}.csv'.format(str(self.main_id))), 'w') as f:
                     writer = csv.writer(f)
                     writer.writerow(['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test'])
                     self.make_file = 1
 
-            with open((str('dataresultat/'+self.dt_string) + self.filename_data+'--rov{}.csv'.format(str(self.main_id))), 'a') as f:
+            with open((str('csv_data/'+self.dt_string) + self.filename_data+'--rov{}.csv'.format(str(self.main_id))), 'a') as f:
                 writer = csv.writer(f)
                 writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test])
     
