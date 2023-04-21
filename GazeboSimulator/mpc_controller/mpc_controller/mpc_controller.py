@@ -224,7 +224,12 @@ class BluerovPubSubNode(Node):
                               msg.pose.pose.orientation.z,
                               msg.twist.twist.linear.x,
                               msg.twist.twist.linear.y,
-                              msg.twist.twist.linear.z,        if(not self.ready_signal_mpc): #First cycle
+                              msg.twist.twist.linear.z,
+                              msg.twist.twist.angular.x,
+                              msg.twist.twist.angular.y,
+                              msg.twist.twist.angular.z]
+        
+        if(not self.ready_signal_mpc): #First cycle
             now = datetime.now()
             self.dt_string = now.strftime("Date--%d--%m--%y--Time--%H--%M--%S")
             with open((str('dataresultat/'+self.dt_string) + '--data--rov{}.csv'.format(str(self.main_id))), 'w') as f:
