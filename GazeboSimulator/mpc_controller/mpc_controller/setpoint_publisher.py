@@ -1,8 +1,8 @@
 ####################### SETPOINT PUBLISHER ###############################
 
-#This node takes in waypoints in as a Vector3 message (no time needed), and creates trajectories 
+# This node takes in waypoints in as a Vector3 message (no time needed), and creates trajectories 
 
-#example command:
+# example command:
 # ros2 topic pub /trajectory_waypoints --once geometry_msgs/msg/Vector3 {'x: 2.0, y: 4.0, z: 2.0'}
 import rclpy
 from numpy import sin,cos, pi, array, linalg, sqrt
@@ -41,8 +41,9 @@ class SetpointPublisher(Node):
         #Moves in a straight line in the x-axis
         # [ 0.00000000e+00  1.33226763e-16  1.20000000e-02 -1.20000000e-04]
         x = 1.33226763*10**(-16)*t+1.20000000*10**(-2)*t**2-1.20000000*10**(-4)*t**3
-        if(x>=15.0):
+        if(x>=15.0 or self.line_complete):
             x = 15.0
+            self.line_complete = True
         y = 0.0
         z = 5.0
         return x,y,z
@@ -154,7 +155,7 @@ class SetpointPublisher(Node):
 
     def trajectory_callback(self, msg): # append waypoints to waypoint list
 
-        avg_speed = 0.4 # average speed in m/s, used to calculate time to each setpoint
+        avg_speed = 0.3 # average speed in m/s, used to calculate time to each setpoint
 
         if(len(self.wp_x) == 0): # if first waypoint, append and exit function
             self.wp_x.append(msg.x)
@@ -207,43 +208,34 @@ class SetpointPublisher(Node):
                     msg.x = self.cubic_trajectory_generation(self.a_x,current_time)
                     msg.y = self.cubic_trajectory_generation(self.a_y,current_time)
                     msg.z = self.cubic_trajectory_generation(self.a_z,current_time)
-                
+            else:
+                msg.x = 0.0
+                msg.y = 0.0
+                msg.z = 5.0    
             self.publisher_.publish(msg)
 
         elif (self.control_mode  == 2):
+            if(self.reset_iteration_standard_test != self.std_test):
+                        self.t = 0
+                        self.reset_iteration_standard_test = self.std_test
+                        self.line_complete = False
             match self.std_test:
                 case 0:
-                    if(self.reset_iteration_standard_test != 0):
-                        self.t = 0
-                        self.reset_iteration_standard_test = 0
                     msg.x = 0.0
                     msg.y = 0.0
                     msg.z = 5.0
                 case 1:
-                    if(self.reset_iteration_standard_test != 1):
-                        self.t = 0
-                        self.reset_iteration_standard_test = 1
                     current_time_std = self.t * self.timer_period #
                     msg.x, msg.y, msg.z = self.sine_wave(current_time_std)
                 case 2:
-                    if(self.reset_iteration_standard_test != 2):
-                        self.t = 0
-                        self.reset_iteration_standard_test = 2
                     current_time_std = self.t * self.timer_period #
                     msg.x, msg.y, msg.z = self.torus(current_time_std) 
                 case 3:
-                    if(self.reset_iteration_standard_test != 3):
-                        self.t = 0
-                        self.reset_iteration_standard_test = 3
                     current_time_std = self.t * self.timer_period #
                     msg.x, msg.y, msg.z = self.line(current_time_std)
                 case 4:
-                    if(self.reset_iteration_standard_test != 4):
-                        self.t = 0
-                        self.reset_iteration_standard_test = 4
                     current_time_std = self.t * self.timer_period #
                     msg.x, msg.y, msg.z = self.spiral(current_time_std)
-                    self.get_logger().info('current_time_std: "%s"' % current_time_std)
             
     
             self.publisher_.publish(msg)
