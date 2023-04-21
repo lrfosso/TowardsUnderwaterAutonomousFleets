@@ -55,6 +55,7 @@ class BluerovPubSubNode(Node):
         self.record_data = 0
         self.dt_string = 0
         self.filename_data = "data"
+        self.make_file = 0
         # Initialize the MPC
         #self.FOV_constraint = True
         self.modelRov = MyROVModel()
@@ -240,21 +241,27 @@ class BluerovPubSubNode(Node):
                               msg.twist.twist.angular.y,
                               msg.twist.twist.angular.z]
         self.x0 = np.array(self.odometry_list)
-        if(self.record_data):
-            if(not self.ready_signal_mpc): #First cycle
-                now = datetime.now()
-                self.dt_string = now.strftime("Date--%d--%m--%y--Time--%H--%M--%S--")
+               
+        if(not self.ready_signal_mpc): #First cycle
+            self.mpc1.x0 = self.x0
+            self.mpc1.mpc.set_initial_guess()
+            self.ready_signal_mpc = True
+
+        if(not self.record_data):
+            now = datetime.now()
+            self.dt_string = now.strftime("Date--%d--%m--%y--Time--%H--%M--%S--")
+            self.make_file = 0
+
+        if(self.record_data and self.ready_signal_mpc):
+            if(not self.make_file):
                 with open((str('dataresultat/'+self.dt_string) + self.filename_data+'--rov{}.csv'.format(str(self.main_id))), 'w') as f:
                     writer = csv.writer(f)
                     writer.writerow(['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test'])
-                self.mpc1.x0 = self.x0
-                self.mpc1.mpc.set_initial_guess()
-                self.ready_signal_mpc = True
+                    self.make_file = 1
 
-            with open((str('dataresultat/'+self.dt_string) + '--data--rov{}.csv'.format(str(self.main_id))), 'a') as f:
+            with open((str('dataresultat/'+self.dt_string) + self.filename_data+'--rov{}.csv'.format(str(self.main_id))), 'a') as f:
                 writer = csv.writer(f)
                 writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test])
-            #self.x0 = np.array(self.odometry_list)
     
     def odometry_callback_2(self, msg):
         """Subscriber function for 2nd ROV odometry"""
