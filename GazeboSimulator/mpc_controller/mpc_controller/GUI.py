@@ -9,6 +9,7 @@ from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import Int32
+from std_msgs.msg import Float64
 
 class GUI(Node):
 
@@ -16,7 +17,9 @@ class GUI(Node):
         ###### INIT ROS2 ############################################################################
         super().__init__('GUI')
         self.declare_parameter('fleet_quantity')
+        self.declare_parameter('FOV_max')
         self.n_agents = self.get_parameter('fleet_quantity').get_parameter_value().integer_value
+        self.FOV_limit = self.get_parameter('FOV_max').get_parameter_value().double_value
         self.subscription = self.create_subscription(
             Odometry,
             '/bluerov2_pid/bluerov2/observer/nlo/odom_ned',
@@ -33,16 +36,48 @@ class GUI(Node):
                 '/bluerov2_pid/bluerov3/observer/nlo/odom_ned',
                 self.ROV2_odom_callback,
                 10)
+            self.subscription = self.create_subscription(
+                Float64,
+                '/bluerov2_mpc/angle/from_2_to_3',
+                self.angle_callback2to3,
+                10)
+            self.subscription = self.create_subscription(
+                Float64,
+                '/bluerov3_mpc/angle/from_3_to_2',
+                self.angle_callback3to2,
+                10)
         if(self.n_agents > 2):
             self.subscription = self.create_subscription(
                 Odometry,
                 '/bluerov2_pid/bluerov4/observer/nlo/odom_ned',
                 self.ROV3_odom_callback,
                 10)
+            self.subscription = self.create_subscription(
+                Float64,
+                '/bluerov2_mpc/angle/from_2_to_4',
+                self.angle_callback2to4,
+                10)
+            self.subscription = self.create_subscription(
+                Float64,
+                '/bluerov3_mpc/angle/from_3_to_4',
+                self.angle_callback3to4,
+                10)
+            self.subscription = self.create_subscription(
+                Float64,
+                '/bluerov4_mpc/angle/from_4_to_2',
+                self.angle_callback4to2,
+                10)
+            self.subscription = self.create_subscription(
+                Float64,
+                '/bluerov4_mpc/angle/from_4_to_3',
+                self.angle_callback4to3,
+                10)
+        
+
         self.subscription  # prevent unused variable warning
         self.publisher_1 = self.create_publisher(Vector3, '/trajectory_waypoints', 10)
         self.publisher_control_mode = self.create_publisher(Int32, '/control_mode', 10)
-        self.publisher_standard_test = self.create_publisher(Int32, '/std_test', 10)
+        self.publisher_standard_test = self.create_publisher(Int32, "/std_test", 10)
 
         ###### INIT PLOT ############################################################################
         w, h = figsize = (10, 7)     # figure size
@@ -98,12 +133,14 @@ class GUI(Node):
 
         if event == '-TEST1-':
             self.std_test.data = 1
-        if event == '-TEST2-':
+        elif event == '-TEST2-':
             self.std_test.data = 2
-        if event == '-TEST3-':
+        elif event == '-TEST3-':
             self.std_test.data = 3
-        if event == '-TEST4-':
+        elif event == '-TEST4-':
             self.std_test.data = 4
+        elif event == '-INITIALIZE-':
+            self.std_test.data = 0
         self.publisher_standard_test.publish(self.std_test)
 
         useable_col = ('black',"Grey80")
@@ -116,7 +153,7 @@ class GUI(Node):
             mode.data = 1
             self.TRAJECTORY_mode(useable_col, unuseable_col)
         else:
-            mode.data = 0
+            mode.data = 2
             self.STANDARD_TEST_mode(useable_col, unuseable_col)
         self.publisher_control_mode.publish(mode)
 
@@ -227,13 +264,14 @@ class GUI(Node):
             [sg.Text('Z:',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
             sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-Z-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
             sg.Text('   0 < Z < 15',font=font, size=(10, 1),text_color=text_col, background_color=background_col),],
-            [sg.Button('Set position', size=(38, 2), font=font, key='-SET_P-', button_color=('black',button_col))],
+            [sg.Button('Set position', size=(38, 1), font=font, key='-SET_P-', button_color=('black',button_col))],
             [sg.Text('', background_color=background_col)],
             [sg.Text('Standard test', size=(50, 1), justification='center', font=(font, 12, "bold"),text_color=text_col, background_color=unclickable_col)],
-            [sg.Button('Test 1', size=(20, 1), font=font, key='-TEST1-', button_color=('black', button_col)),
-            sg.Button('Test 2', size=(20, 1), font=font, key='-TEST2-', button_color=('black', button_col))],
-            [sg.Button('Test 3', size=(20, 1), font=font, key='-TEST3-', button_color=('black', button_col)),
-            sg.Button('Test 4', size=(20, 1), font=font, key='-TEST4-', button_color=('black', button_col))],
+            [sg.Button('Circle [1]', size=(20, 1), font=font, key='-TEST1-', button_color=('black', button_col)),
+            sg.Button('Torus [2]', size=(20, 1), font=font, key='-TEST2-', button_color=('black', button_col))],
+            [sg.Button('Line [3]', size=(20, 1), font=font, key='-TEST3-', button_color=('black', button_col)),
+            sg.Button('Spiral [4]', size=(20, 1), font=font, key='-TEST4-', button_color=('black', button_col))],
+            [sg.Button('Initialize position', size=(44, 1), font=font, key='-INITIALIZE-', button_color=('black', button_col))],
             [sg.Text('', background_color=background_col)],
             [sg.Text('O', background_color=background_col, size=(5, 1), text_color=background_col, justification='center', font=font),
             sg.Text('ROV1', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
@@ -274,6 +312,8 @@ class GUI(Node):
         self.sec_col = [
             [sg.Canvas(size=self.size, key='-CANVAS-', background_color='white')],
             [sg.Text('Ocean current:', size=(15, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
+            sg.Text('', size=(40, 1), justification='center', font=font,text_color="white", background_color='white'),
+            sg.Text('FOV:', size=(15, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
             ],
             [sg.Text('X', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
             sg.InputText('0', size=(5, 1), justification='center', font=font, key='-CUR_X-',text_color=text_col, background_color=ind_text_col),
@@ -282,6 +322,21 @@ class GUI(Node):
             sg.Text('Z', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
             sg.InputText('0', size=(5, 1), justification='center', font=font, key='-CUR_Z-',text_color=text_col, background_color=ind_text_col),
             sg.Button('Set', size=(10, 1), font=font, key='-SET_CUR-', button_color=('black', button_col)),
+            sg.Text('', size=(4, 1), background_color="white"),
+            sg.Text('2 to 3:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color="white"),
+            sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_23-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color="white"),
+            sg.Text('3 to 2:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color="white"),
+            sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_32-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_agents > 1 else sg.Text('',size=(0,0), background_color="white"),
+            sg.Text('4 to 2:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
+            sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_42-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
+            ],
+            [sg.Text('', size=(73, 1), background_color="white"),
+            sg.Text('2 to 4:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
+            sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_24-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
+            sg.Text('3 to 4:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
+            sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_34-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
+            sg.Text('4 to 3:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
+            sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_43-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
             ],
             
         ]
@@ -340,7 +395,7 @@ class GUI(Node):
         if(invalid):
             sg.popup('Please enter a valid number for the current coordinates!',background_color="yellow", text_color="black", font="Helvetica 14", title="Warning")
         else:
-            os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: {}, y:{}, z:{}'".format(self.values['-CUR_X-'], self.values['-CUR_Y-'], self.values['-CUR_Z-']))
+            os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: {}, y:{}, z:{}'".format(self.values['-CUR_Y-'], self.values['-CUR_X-'], "-"+self.values['-CUR_Z-']))
             
         invalid = False
 
@@ -350,10 +405,12 @@ class GUI(Node):
         self.window['-TEST2-'].update(button_color = unuseable_col)
         self.window['-TEST3-'].update(button_color = unuseable_col)
         self.window['-TEST4-'].update(button_color = unuseable_col)
+        self.window['-INITIALIZE-'].update(button_color = unuseable_col)
         self.window['-TEST1-'].update(disabled=True)
         self.window['-TEST2-'].update(disabled=True)
         self.window['-TEST3-'].update(disabled=True)
         self.window['-TEST4-'].update(disabled=True)
+        self.window['-INITIALIZE-'].update(disabled=True)
 
         self.window['-SET_P-'].update(button_color = unuseable_col)
         self.window['-SET_P-'].update(disabled=True)
@@ -368,10 +425,12 @@ class GUI(Node):
         self.window['-TEST2-'].update(button_color = unuseable_col)
         self.window['-TEST3-'].update(button_color = unuseable_col)
         self.window['-TEST4-'].update(button_color = unuseable_col)
+        self.window['-INITIALIZE-'].update(button_color = unuseable_col)
         self.window['-TEST1-'].update(disabled=True)
         self.window['-TEST2-'].update(disabled=True)
         self.window['-TEST3-'].update(disabled=True)
         self.window['-TEST4-'].update(disabled=True)
+        self.window['-INITIALIZE-'].update(disabled=True)
 
         self.window['-SET_P-'].update(button_color = useable_col)
         self.window['-SET_P-'].update(disabled=False)
@@ -386,10 +445,12 @@ class GUI(Node):
         self.window['-TEST2-'].update(button_color = useable_col)
         self.window['-TEST3-'].update(button_color = useable_col)
         self.window['-TEST4-'].update(button_color = useable_col)
+        self.window['-INITIALIZE-'].update(button_color = useable_col)
         self.window['-TEST1-'].update(disabled=False)
         self.window['-TEST2-'].update(disabled=False)
         self.window['-TEST3-'].update(disabled=False)
         self.window['-TEST4-'].update(disabled=False)
+        self.window['-INITIALIZE-'].update(disabled=False)
 
         self.window['-SET_P-'].update(button_color = unuseable_col)
         self.window['-SET_P-'].update(disabled=True)
@@ -409,6 +470,54 @@ class GUI(Node):
     def ref_callback(self, msg):
         """Callback function for reference topic"""
         self.traj_reference = [msg.x, msg.y, msg.z]
+    
+    def angle_callback2to3(self, msg):
+        """Callback function for angle2to3 topic"""
+        if(self.FOV_limit > msg.data):
+            self.window['-ANGLE_23-'].update(background_color = '#0000B9', text_color="white")
+        else:
+            self.window['-ANGLE_23-'].update(background_color = 'yellow', text_color="black")
+        self.window['-ANGLE_23-'].update("%.2f"%msg.data)
+        
+    def angle_callback2to4(self, msg):
+        """Callback function for angle3to2 topic"""
+        if(self.FOV_limit > msg.data):
+            self.window['-ANGLE_24-'].update(background_color = '#0000B9', text_color="white")
+        else:
+            self.window['-ANGLE_24-'].update(background_color = 'yellow', text_color="black")
+        self.window['-ANGLE_24-'].update("%.2f"%msg.data)
+
+    def angle_callback3to2(self, msg):
+        """Callback function for angle2to3 topic"""
+        if(self.FOV_limit > msg.data):
+            self.window['-ANGLE_32-'].update(background_color = '#0000B9', text_color="white")
+        else:
+            self.window['-ANGLE_32-'].update(background_color = 'yellow', text_color="black")
+        self.window['-ANGLE_32-'].update("%.2f"%msg.data)
+
+    def angle_callback3to4(self, msg):
+        """Callback function for angle3to4 topic"""
+        if(self.FOV_limit > msg.data):
+            self.window['-ANGLE_34-'].update(background_color = '#0000B9', text_color="white")
+        else:
+            self.window['-ANGLE_34-'].update(background_color = 'yellow', text_color="black")
+        self.window['-ANGLE_34-'].update("%.2f"%msg.data)
+    
+    def angle_callback4to2(self, msg):
+        """Callback function for angle4to2 topic"""
+        if(self.FOV_limit > msg.data):
+            self.window['-ANGLE_42-'].update(background_color = '#0000B9', text_color="white")
+        else:
+            self.window['-ANGLE_42-'].update(background_color = 'yellow', text_color="black")
+        self.window['-ANGLE_42-'].update("%.2f"%msg.data)
+
+    def angle_callback4to3(self, msg):
+        """Callback function for angle4to3 topic"""
+        if(self.FOV_limit > msg.data):
+            self.window['-ANGLE_43-'].update(background_color = '#0000B9', text_color="white")
+        else:
+            self.window['-ANGLE_43-'].update(background_color = 'yellow', text_color="black")
+        self.window['-ANGLE_43-'].update("%.2f"%msg.data)
 
     def open_window(self):
         """Opens a new window with parameters"""
