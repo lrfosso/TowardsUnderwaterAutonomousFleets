@@ -9,6 +9,7 @@ import do_mpc
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
+from std_msgs.msg import Int32
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Vector3
 from rosgraph_msgs.msg import Clock
@@ -85,13 +86,13 @@ class BluerovPubSubNode(Node):
             10) 
         
         self.control_mode_subscriber = self.create_subscription(  
-            Float64,
+            Int32,
             "/control_mode",
             self.control_mode_callback, #Callback function
             10)
         
         self.std_test_subscriber = self.create_subscription(  
-            Float64,
+            Int32,
             "/std_test",
             self.std_test_callback, #Callback function
             10)
