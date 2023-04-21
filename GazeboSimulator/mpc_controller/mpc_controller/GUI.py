@@ -98,6 +98,10 @@ class GUI(Node):
         ###### INIT PYSIMPLEGUI ######################################################################
         self.setup_layout()
         self.window = sg.Window('ROV Simulator GUI', self.layout, finalize=True,size=(1800, 900), element_justification='center')
+        self.window['-FILENAME-'].Widget.config(insertbackground='black')
+        self.window['-X-'].Widget.config(insertbackground='black')
+        self.window['-Y-'].Widget.config(insertbackground='black')
+        self.window['-Z-'].Widget.config(insertbackground='black')
         self.canvas_elem = self.window['-CANVAS-']
         self.canvas = self.canvas_elem.TKCanvas
         # draw the intitial scatter plot
