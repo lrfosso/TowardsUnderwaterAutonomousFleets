@@ -239,7 +239,7 @@ class BluerovPubSubNode(Node):
             writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test])
                               msg.twist.twist.angular.x,
                               msg.twist.twist.angular.y,
-                              msg.twist.twist.angular.z]
+                              msg.twist.twist.angular.z])
         self.x0 = np.array(self.odometry_list)
         
         if(not self.ready_signal_mpc): #First cycle
