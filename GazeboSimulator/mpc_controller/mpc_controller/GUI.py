@@ -10,6 +10,8 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import Int32
 from std_msgs.msg import Float64
+from std_msgs.msg import Bool
+from std_msgs.msg import String
 
 class GUI(Node):
 
@@ -78,6 +80,8 @@ class GUI(Node):
         self.publisher_1 = self.create_publisher(Vector3, '/trajectory_waypoints', 10)
         self.publisher_control_mode = self.create_publisher(Int32, '/control_mode', 10)
         self.publisher_standard_test = self.create_publisher(Int32, "/std_test", 10)
+        self.publisher_record = self.create_publisher(Bool, "/record_data", 10)
+        self.publisher_filename = self.create_publisher(String, "/filename_data", 10)
 
         ###### INIT PLOT ############################################################################
         w, h = figsize = (10, 7)     # figure size
@@ -113,6 +117,9 @@ class GUI(Node):
 
         self.std_test = Int32()
         self.std_test.data = 0
+
+        self.record = Bool()
+        self.record.data = False
 
 
 
@@ -156,6 +163,18 @@ class GUI(Node):
             mode.data = 2
             self.STANDARD_TEST_mode(useable_col, unuseable_col)
         self.publisher_control_mode.publish(mode)
+
+        if event == '-RECORD-':
+            self.record.data = not self.record.data
+            if self.record.data:
+                self.window['-RECORD-'].update(text="Stop")
+            else:
+                self.window['-RECORD-'].update(text="Start")
+        self.publisher_record.publish(self.record)
+        self.filename = String()
+        self.filename.data = self.values['-FILENAME-']
+        self.publisher_filename.publish(self.filename)
+
 
         
 
@@ -247,10 +266,15 @@ class GUI(Node):
         self.first_col = [
             [sg.Text('ROV Simulator Settings', size=(28, 1), justification='center', font=(font, 25, "bold"),text_color=text_col, background_color=unclickable_col)],
             [sg.Text('', background_color=background_col)],
+            [sg.Text('Record rov data as CSV', size=(55, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col)],
+            [sg.Text('Filename', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
+            sg.InputText(default_text="rov",key='-FILENAME-', size=(30, 1), font=font, background_color=clickable_backgr_col, text_color=clickable_text_col),
+            sg.Button('Start', key='-RECORD-', size=(10, 1), font=font, button_color=("black", button_col)),
+            ],
             [sg.Text('Control mode', size=(55, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),],
             [sg.Radio('Manual (Joystick)               ', "Control_mode", key='-JOYSTICK-', default=False,text_color="black", font=font, background_color=button_col, size=(50, 1))],
-            [sg.Radio('Autonomous (Trajectory planning)', "Control_mode", key='-TRAJECTORY-',text_color="black", font=font, background_color=button_col, default=True, size=(50, 1))],
-            [sg.Radio('Standard test                   ', "Control_mode", key='-STANDARD_TEST-',text_color="black", font=font, background_color=button_col, default=False, size=(50, 1))],
+            [sg.Radio('Autonomous (Trajectory planning)', "Control_mode", key='-TRAJECTORY-', text_color="black", font=font, background_color=button_col, default=False, size=(50, 1))],
+            [sg.Radio('Standard test                   ', "Control_mode", key='-STANDARD_TEST-',text_color="black", font=font, background_color=button_col, default=True, size=(50, 1))],
             [sg.Text('', background_color=background_col)],
             [sg.Text('Position waypoint', size=(50, 1), justification='center', font=(font, 12, "bold"),text_color=text_col, background_color=unclickable_col)],
             [sg.Text('X:',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
