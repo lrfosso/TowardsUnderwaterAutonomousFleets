@@ -22,6 +22,7 @@ def multi_launch(context, *args, **kwargs):
         param = config['/**']['ros_parameters']
 
     multi_agent = param['multi_agent']
+    FOV_max = param['FOV_range_deg']
 
     #Creating a node for each ROV
     launch_agents = []
@@ -55,7 +56,8 @@ def multi_launch(context, *args, **kwargs):
         output='log',
         parameters=[
         {
-            'fleet_quantity': multi_agent    
+            'fleet_quantity': multi_agent,
+            'FOV_max': FOV_max,  
         }
         ]
     )
