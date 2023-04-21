@@ -9,6 +9,8 @@ import do_mpc
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
+from std_msgs.msg import String
+from std_msgs.msg import Bool
 from std_msgs.msg import Int32
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Vector3
@@ -50,7 +52,9 @@ class BluerovPubSubNode(Node):
         self.angle3 = 0
         self.std_test = 0
         self.control_mode = 0
+        self.record_data = 0
         self.dt_string = 0
+        self.filename_data = "data"
         # Initialize the MPC
         #self.FOV_constraint = True
         self.modelRov = MyROVModel()
@@ -97,6 +101,18 @@ class BluerovPubSubNode(Node):
             Vector3,
             "/ocean_current",
             self.ocean_current_callback,
+            10)
+        
+        self.record_data_subscriber = self.create_subscription(  
+            Bool,
+            "/record_data",
+            self.record_data_callback, #Callback function
+            10)
+        
+        self.filename_data_subscriber = self.create_subscription(
+            String,
+            "/filename_data",
+            self.filename_data_callback,
             10)
         #Creating publishers for the thrusters
         #Creating publishers for the thrusters
@@ -155,12 +171,14 @@ class BluerovPubSubNode(Node):
         y = (y2-y1)
         z = (z2-z1)
         return [x, y, z]
+    
     def z_directional_vector_from_quaternion(self, q0, e1, e2, e3):
         """Returns the directional vector of the ROV in -z direction"""
         x = -2*(e1*e3+e2*q0)
         y = -2*(e2*e3-e1*q0)
         z = -1+2*(e1**2+e2**2)
         return [x, y, z]
+    
     def x_directional_vector_from_quaternion(self, q0, e1, e2, e3):
         """Returns the directional vector of the ROV in the x direction (surge)"""
         x = 1-2*(e2**2+e3**2)
@@ -171,10 +189,19 @@ class BluerovPubSubNode(Node):
     def clock_callback(self, msg):
         self.sec = msg.clock.sec 
         self.nanosec = msg.clock.nanosec 
+
     def control_mode_callback(self,msg):
         self.control_mode = msg.data
+
     def std_test_callback(self, msg):
         self.std_test = msg.data
+
+    def record_data_callback(self, msg):
+        self.record_data = msg.data
+
+    def filename_data_callback(self, msg):
+        self.filename_data = msg.data
+
     def reference_callback(self,msg):
         """Subscriber function for the reference topic"""
         self.mpc1.x_setp = msg.x
@@ -213,20 +240,21 @@ class BluerovPubSubNode(Node):
                               msg.twist.twist.angular.y,
                               msg.twist.twist.angular.z]
         self.x0 = np.array(self.odometry_list)
-        if(not self.ready_signal_mpc): #First cycle
-            now = datetime.now()
-            self.dt_string = now.strftime("Date--%d--%m--%y--Time--%H--%M--%S")
-            with open((str('dataresultat/'+self.dt_string) + '--data--rov{}.csv'.format(str(self.main_id))), 'w') as f:
-                writer = csv.writer(f)
-                writer.writerow(['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test'])
-            self.mpc1.x0 = self.x0
-            self.mpc1.mpc.set_initial_guess()
-            self.ready_signal_mpc = True
+        if(self.record_data):
+            if(not self.ready_signal_mpc): #First cycle
+                now = datetime.now()
+                self.dt_string = now.strftime("Date--%d--%m--%y--Time--%H--%M--%S--")
+                with open((str('dataresultat/'+self.dt_string) + self.filename_data+'--rov{}.csv'.format(str(self.main_id))), 'w') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test'])
+                self.mpc1.x0 = self.x0
+                self.mpc1.mpc.set_initial_guess()
+                self.ready_signal_mpc = True
 
-        with open((str('dataresultat/'+self.dt_string) + '--data--rov{}.csv'.format(str(self.main_id))), 'a') as f:
-            writer = csv.writer(f)
-            writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test])
-        self.x0 = np.array(self.odometry_list)
+            with open((str('dataresultat/'+self.dt_string) + '--data--rov{}.csv'.format(str(self.main_id))), 'a') as f:
+                writer = csv.writer(f)
+                writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test])
+            #self.x0 = np.array(self.odometry_list)
     
     def odometry_callback_2(self, msg):
         """Subscriber function for 2nd ROV odometry"""
