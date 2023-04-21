@@ -11,6 +11,7 @@ from rclpy.node import Node
 from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Vector3
+from rosgraph_msgs.msg import Clock
 from module_rovModel import *
 from module_rovController import *
 import logging
@@ -70,32 +71,37 @@ class BluerovPubSubNode(Node):
             "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(self.main_id),
             self.main_odemetry_callback, #Callback function
             10)
+        
         self.ref_subscriber = self.create_subscription(  
             Vector3,
             "/ref",
             self.reference_callback, #Callback function
             10) 
-
-        self.ocean_current_subsriber = self.create_subscription(Vector3,
-            "/ocean_current",
-            self.ocean_current_callback,
         
         self.clock_subscriber = self.create_subscription(  
-            Vector3,
+            Clock,
             "/clock",
             self.clock_callback, #Callback function
             10) 
         
         self.control_mode_subscriber = self.create_subscription(  
-            Vector3,
+            Float64,
             "/control_mode",
             self.control_mode_callback, #Callback function
             10)
+        
         self.std_test_subscriber = self.create_subscription(  
-            Vector3,
+            Float64,
             "/std_test",
             self.std_test_callback, #Callback function
             10)
+        
+        self.ocean_current_subsriber = self.create_subscription(
+            Vector3,
+            "/ocean_current",
+            self.ocean_current_callback,
+            10)
+
         #Creating publishers for the thrusters
         #Creating publishers for the thrusters
         self.publisher_1 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster1_joint/cmd_thrust'.format(self.main_id), 10)
@@ -172,8 +178,8 @@ class BluerovPubSubNode(Node):
         return [x, y, z]
     
     def clock_callback(self, msg):
-        self.sec = msg.sec  
-        self.nanosec = msg.nanosec  
+        self.sec = msg.clock.sec 
+        self.nanosec = msg.clock.nanosec 
 
     def control_mode_callback(self,msg):
         self.control_mode = msg.data
@@ -278,7 +284,7 @@ class BluerovPubSubNode(Node):
     #    self.mpc1.x_6 = msg.pose.pose.position.x
     #    self.mpc1.y_6 = msg.pose.pose.position.y
     #    self.mpc1.z_6 = msg.pose.pose.position.z
-    
+
     def ocean_current_callback(self, msg):
         v_e = 1*np.array([[msg.x],[msg.y],[msg.z]]) #Ocean current in ENU
         enu_to_ned = np.array([[0,1,0],[1,0,0],[0,0,-1]]) # ENU TO NED ROTATION MATRIX
@@ -290,10 +296,6 @@ class BluerovPubSubNode(Node):
         self.mpc1.u_c = nu_c[0,0]
         self.mpc1.v_c = nu_c[1,0]
         self.mpc1.w_c = nu_c[2,0]
-
-        #self.mpc1.u_c = nu_c[0,0]
-        #self.mpc1.v_c = nu_c[1,0]
-        #self.mpc1.w_c = 0
 
     def publisher_callback(self):
         """Running the MPC and publishing the thrusts"""
