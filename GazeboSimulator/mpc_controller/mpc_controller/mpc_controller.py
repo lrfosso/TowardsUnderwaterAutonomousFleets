@@ -234,7 +234,7 @@ class BluerovPubSubNode(Node):
             writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test])
         if(not self.ready_signal_mpc): #First cycle
             now = datetime.now()
-            self.dt_string = now.strftime("C%H_%M_%S_D%d_%m_%y")
+            self.dt_string = now.strftime("C%d_%m_%y_D%H_%M_%S")
             with open((str(self.dt_string) + 'data{}.csv'.format(str(self.main_id))), 'w') as f:
                 writer = csv.writer(f)
                 writer.writerow(['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test'])
