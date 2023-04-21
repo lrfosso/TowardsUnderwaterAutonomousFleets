@@ -16,21 +16,51 @@ class SetpointPublisher(Node):
     
     def sine_wave(self,t):
         #Creates a sine wave in the z-axis, moves in a circle in the xy-plane 
-        z = 1*sin(pi*t/25)+2
-        x = 5*cos(t/100)
-        y = 5*sin(t/100)
+        z = 1*sin(pi*t/25)+5
+        x = 5*cos(pi*t/100) - 5
+        y = 5*sin(pi*t/100)
         return x,y,z 
 
     def torus(self,t):
         #Moves in a spiral shape around a torus of diameter 5
-        z = 1*sin(pi*t/25)+2
-        x = 5*cos(t/100) + 1*cos(pi*t/25)
-        y = 5*sin(t/100) + 1*sin(pi*t/25)
+        r_big = 7
+        r = 2
+        theta = 35
+        phi = 200
+        x = r_big*cos(pi*t/phi)+r*cos(pi*t/theta)*cos(pi*t/phi) - (r_big+r)
+        y = r_big*sin(pi*t/phi)+r*cos(pi*t/theta)*sin(pi*t/phi)
+        z = r*sin(pi*t/theta) +5
+
+        #z = 1*sin(pi*t/25)+2
+        #x = 5*cos(t/100) + 1*cos(pi*t/25)
+        #y = 5*sin(t/100) + 1*sin(pi*t/25)
+
         return x,y,z 
+
     def line(self,t):
-        msg.x = cubic_trajectory_generation(x,t)
-        msg.y = cubic_trajectory_generation(y,t)
-        msg.z = cubic_trajectory_generation(z,t)
+        #Moves in a straight line in the x-axis
+        # [ 0.00000000e+00  1.33226763e-16  1.20000000e-02 -1.20000000e-04]
+        x = 1.33226763*10**(-16)*t+1.20000000*10**(-2)*t**2-1.20000000*10**(-4)*t**3
+        if(x>=15.0):
+            x = 15.0
+        y = 0.0
+        z = 5.0
+        return x,y,z
+
+    def spiral(self,t):
+        x = (4-0.015*t)*cos(pi*(t)/(100-0.3*(t))) - 4
+        y = (4-0.015*t)*sin(pi*(t)/(100-0.3*(t)))
+        z = 5.0
+        return x,y,z
+
+
+    def square(self, t):
+        x = 0.0
+        y = 0.0
+        z = 5.0
+        return x,y,z
+
+    
     def cubic_trajectory_parameter_generation(self,x0,dx0,x1,dx1, t0, t1):
         # Returns a vector of coefficients that generate a cubic polynomial that satisfies the constraints
         A =array([[1,t0, t0**2, t0**3],
@@ -81,9 +111,11 @@ class SetpointPublisher(Node):
 
         self.j = 0 # tracker for which waypoint is active
         self.i = 0 # no. times timer callback has been called
+        self.t = 0 # time (used for standard tests)
+        self.reset_iteration_standard_test = -1 # used to reset the standard test iteration
         
         self.control_mode = 2 #control mode initialized to trajectory
-        self.std_test = 2 # Standard tests
+        self.std_test = 0 # Standard tests
         self.wp_x = [] #waypoint lists
         self.wp_y = []
         self.wp_z = []
@@ -95,6 +127,7 @@ class SetpointPublisher(Node):
         self.a_z = [0]*4 #param list
         self.timer_period = 0.5  # seconds publish frequency 
         self.timer = self.create_timer(self.timer_period, self.timer_callback)
+
 
         self.trajectory_subscriber = self.create_subscription(  # Creates a subscription to the trajectory waypoints topic
             Vector3, #Message type vector of 3 floats
@@ -114,8 +147,7 @@ class SetpointPublisher(Node):
             self.std_test_callback, #function?
             10)
     def control_mode_callback(self, msg):
-        #self.control_mode = msg.data
-        pass
+        self.control_mode = msg.data
 
     def std_test_callback(self, msg):
         self.std_test = msg.data
@@ -179,21 +211,44 @@ class SetpointPublisher(Node):
             self.publisher_.publish(msg)
 
         elif (self.control_mode  == 2):
-            self.get_logger().info('hello')
             match self.std_test:
+                case 0:
+                    if(self.reset_iteration_standard_test != 0):
+                        self.t = 0
+                        self.reset_iteration_standard_test = 0
+                    msg.x = 0.0
+                    msg.y = 0.0
+                    msg.z = 5.0
                 case 1:
-                    msg.x, msg.y, msg.z = self.sine_wave(current_time)
+                    if(self.reset_iteration_standard_test != 1):
+                        self.t = 0
+                        self.reset_iteration_standard_test = 1
+                    current_time_std = self.t * self.timer_period #
+                    msg.x, msg.y, msg.z = self.sine_wave(current_time_std)
                 case 2:
-                    msg.x, msg.y, msg.z = self.torus(current_time) 
-                #case 3:
-                    #avg_speed = 0.3 #m/s
-                    #delta_t = sqrt(5**2 + 5**2 + 2**2)/avg_speed
-                    #x = cubic_trajectory_parameter_generation(0,0,5,0,t,t + delta_t)
-                    #y = cubic_trajectory_parameter_generation(0,0,5,0,t,t + delta_t)
-                    #z = cubic_trajectory_parameter_generation(0,0,2,0,t,t + delta_t)
-                    #msg.x, msg.y, msg.z = line(current_time)
+                    if(self.reset_iteration_standard_test != 2):
+                        self.t = 0
+                        self.reset_iteration_standard_test = 2
+                    current_time_std = self.t * self.timer_period #
+                    msg.x, msg.y, msg.z = self.torus(current_time_std) 
+                case 3:
+                    if(self.reset_iteration_standard_test != 3):
+                        self.t = 0
+                        self.reset_iteration_standard_test = 3
+                    current_time_std = self.t * self.timer_period #
+                    msg.x, msg.y, msg.z = self.line(current_time_std)
+                case 4:
+                    if(self.reset_iteration_standard_test != 4):
+                        self.t = 0
+                        self.reset_iteration_standard_test = 4
+                    current_time_std = self.t * self.timer_period #
+                    msg.x, msg.y, msg.z = self.spiral(current_time_std)
+                    self.get_logger().info('current_time_std: "%s"' % current_time_std)
+            
+    
             self.publisher_.publish(msg)
             self.i += 1
+            self.t += 1
         if self.debug_rov < 2:
             self.get_logger().info('Publishing: x:"%s", y:"%s", z:"%s"' %( msg.x,msg.y,msg.z))
             
