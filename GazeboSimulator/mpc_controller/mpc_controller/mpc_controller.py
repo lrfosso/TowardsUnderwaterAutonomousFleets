@@ -23,7 +23,6 @@ class BluerovPubSubNode(Node):
         super().__init__('bluerov_pubsub')
         self.ready_signal_mpc = False # Flag to start the MPC
         # Node launch parameters
-
         # Declare parameters
         # self.declare_parameter('')
         self.declare_parameter('main_id')
@@ -34,8 +33,6 @@ class BluerovPubSubNode(Node):
         self.declare_parameter('FOV_range_deg')
         self.declare_parameter('FOV_range_soft_deg')
         self.declare_parameter('cycle_time_publish')
-
-
         # Get parameters
         # self. = self.get_parameter('').get_parameter_value().
         self.main_id = self.get_parameter('main_id').get_parameter_value().integer_value
@@ -65,7 +62,6 @@ class BluerovPubSubNode(Node):
                                 FOV_range_soft_deg=self.FOV_range_soft_deg,
                                 FOV_constraint= self.FOV_constraint
                                 )
-
         # Initialize subscribers for the main ROV
         self.main_odometry_subscriber = self.create_subscription(  
             Odometry,
@@ -102,7 +98,6 @@ class BluerovPubSubNode(Node):
             "/ocean_current",
             self.ocean_current_callback,
             10)
-
         #Creating publishers for the thrusters
         #Creating publishers for the thrusters
         self.publisher_1 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster1_joint/cmd_thrust'.format(self.main_id), 10)
@@ -113,11 +108,9 @@ class BluerovPubSubNode(Node):
         self.publisher_6 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster6_joint/cmd_thrust'.format(self.main_id), 10)
         self.publisher_7 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster7_joint/cmd_thrust'.format(self.main_id), 10)
         self.publisher_8 = self.create_publisher(Float64, '/model/bluerov{}/joint/thruster8_joint/cmd_thrust'.format(self.main_id), 10)
-
         # Multi agent subscribers
         multi_agent_id = [i for i in range(2,(self.fleet_quantity+2))] #List of ROV IDs
         multi_agent_id.pop(self.main_id - 2) #Remove the main ROV ID from the list
-
         if(self.fleet_quantity > 1): 
             self.odometry_2_subscriber = self.create_subscription(  
                 Odometry, #Message type
@@ -153,12 +146,9 @@ class BluerovPubSubNode(Node):
         #        "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[3]), #Topic
         #        self.odometry_callback_6, #function?
         #        10)
-
-
         self.main_odometry_subscriber #Prevent unused variable warning
         cycle_time_publish = 0.05  # seconds
         self.timer = self.create_timer(cycle_time_publish, self.publisher_callback)
-
     def vector_between_rovs(self,x1,y1,z1,x2,y2,z2):
         """Gets xyz coords of ROVs as input. Returns the vector between them (- heave)"""
         x = (x2-x1)
@@ -181,19 +171,15 @@ class BluerovPubSubNode(Node):
     def clock_callback(self, msg):
         self.sec = msg.clock.sec 
         self.nanosec = msg.clock.nanosec 
-
     def control_mode_callback(self,msg):
         self.control_mode = msg.data
-
     def std_test_callback(self, msg):
         self.std_test = msg.data
-
     def reference_callback(self,msg):
         """Subscriber function for the reference topic"""
         self.mpc1.x_setp = msg.x
         self.mpc1.y_setp = msg.y
         self.mpc1.z_setp = msg.z
-
         # CALCULATIING THE QUATERNION REFERENCES (Maybe move)
         if(self.ready_signal_mpc):
             if(self.FOV_constraint):
@@ -203,7 +189,6 @@ class BluerovPubSubNode(Node):
             this_rov_pos = [float(self.x0[0]), float(self.x0[1]), float(self.x0[2])]
             vector = np.array(comparison_vector) - np.array(this_rov_pos)
             vector = vector / np.linalg.norm(vector)
-
             theta = np.arccos(np.dot([1, 0, 0], vector))
             axis = np.cross([1, 0, 0], vector)
             if(sum(axis) != 0):
@@ -212,7 +197,6 @@ class BluerovPubSubNode(Node):
                 self.mpc1.e_1_setp = axis[0] * np.sin(theta/2)
                 self.mpc1.e_2_setp = axis[1] * np.sin(theta/2)
                 self.mpc1.e_3_setp = axis[2] * np.sin(theta/2)
-
     def main_odemetry_callback(self, msg):
         """Subscriber function for the main ROV odometry"""
         self.odometry_list = [msg.pose.pose.position.x,
@@ -228,7 +212,7 @@ class BluerovPubSubNode(Node):
                               msg.twist.twist.angular.x,
                               msg.twist.twist.angular.y,
                               msg.twist.twist.angular.z]
-        
+        self.x0 = np.array(self.odometry_list)
         if(not self.ready_signal_mpc): #First cycle
             now = datetime.now()
             self.dt_string = now.strftime("Date--%d--%m--%y--Time--%H--%M--%S")
@@ -256,7 +240,6 @@ class BluerovPubSubNode(Node):
             self.angle2 = round(((180*(np.arccos(np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2)))))/np.pi),2)
             angle.data = self.angle2
             self.angle_publisher.publish(angle)
-
     def odometry_callback_3(self, msg):
         """Subscriber function for 3rd ROV odometry"""
         self.mpc1.x_3 = msg.pose.pose.position.x
@@ -287,7 +270,6 @@ class BluerovPubSubNode(Node):
     #    self.mpc1.x_6 = msg.pose.pose.position.x
     #    self.mpc1.y_6 = msg.pose.pose.position.y
     #    self.mpc1.z_6 = msg.pose.pose.position.z
-
     def ocean_current_callback(self, msg):
         v_e = 1*np.array([[msg.x],[msg.y],[msg.z]]) #Ocean current in ENU
         enu_to_ned = np.array([[0,1,0],[1,0,0],[0,0,-1]]) # ENU TO NED ROTATION MATRIX
@@ -299,14 +281,11 @@ class BluerovPubSubNode(Node):
         self.mpc1.u_c = nu_c[0,0]
         self.mpc1.v_c = nu_c[1,0]
         self.mpc1.w_c = nu_c[2,0]
-
     def publisher_callback(self):
         """Running the MPC and publishing the thrusts"""
         # Making MPC step
-
         if(self.ready_signal_mpc): #If the odometry is ready
             self.u0_1 = self.mpc1.mpc.make_step(self.x0)
-
             # Publishing the thrusts
             thrust1 = Float64()
             thrust1.data = round(float(self.u0_1[0][0]),2)
@@ -326,7 +305,6 @@ class BluerovPubSubNode(Node):
             thrust8.data = round(float(self.u0_1[7][0]),2)
             
             
-
             self.publisher_1.publish(thrust1)
             self.publisher_2.publish(thrust2)
             self.publisher_3.publish(thrust3)
@@ -335,7 +313,6 @@ class BluerovPubSubNode(Node):
             self.publisher_6.publish(thrust6)
             self.publisher_7.publish(thrust7)
             self.publisher_8.publish(thrust8)
-
 def main(args=None):
     rclpy.init(args=args)
     bluerov_pubsub_node = BluerovPubSubNode()
