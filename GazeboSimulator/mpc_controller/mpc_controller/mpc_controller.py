@@ -243,20 +243,6 @@ class BluerovPubSubNode(Node):
             writer = csv.writer(f)
             writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test])
         self.x0 = np.array(self.odometry_list)
-        
-        if(not self.ready_signal_mpc): #First cycle
-            now = datetime.now()
-            self.dt_string = now.strftime("Date--%d--%m--%y--Time--%H--%M--%S")
-            with open((str('dataresultat/'+self.dt_string) + '--data--rov{}.csv'.format(str(self.main_id))), 'w') as f:
-                writer = csv.writer(f)
-                writer.writerow(['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test'])
-            self.mpc1.x0 = self.x0
-            self.mpc1.mpc.set_initial_guess()
-            self.ready_signal_mpc = True
-
-        with open((str('dataresultat/'+self.dt_string) + '--data--rov{}.csv'.format(str(self.main_id))), 'a') as f:
-            writer = csv.writer(f)
-            writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test])
     
     def odometry_callback_2(self, msg):
         """Subscriber function for 2nd ROV odometry"""
