@@ -64,6 +64,7 @@ def angle_plot(df1,df2, save_fig, display_fig):
     ax.plot(full_sec1, df1['angle2'],'b', label='FOV angle 1')
     ax.plot(full_sec2, df2['angle2'],'g', label='FOV angle 2')
     ax.plot(full_sec1, [90 for i in range(len(full_sec1))], 'r', label='FOV limit')
+    ax.legend(loc='upper left')
 
     ax.set(xlabel='time (s)', ylabel='angle (deg)',title="FOV angle")
     ax.grid()
