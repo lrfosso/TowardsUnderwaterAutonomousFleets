@@ -7,7 +7,7 @@ import os
 
 #----------------------------Settings----------------------------#
 n_agents = 2
-folder = "current_x03"
+folder = "current_03/No_disturbance"
 save_fig = True
 display_fig = False
 
@@ -48,7 +48,7 @@ for file in files:
     ax.plot3D(df1['x'], df1['y'], df1['z'], 'gray')
     ax.plot3D(df2['x'], df2['y'], df2['z'], 'black')
     ax.plot3D(df1['x_ref'], df1['y_ref'], df1['z_ref'], 'red')
-    plot_name = "3D_"+file[45:].replace(".csv", ".png")
+    plot_name = "3D_"+file[43:].replace(".csv", ".png")
     plot_name = plot_name.replace("--rov2", "")
     if(save_fig):
         print("Saving figure as:",plot_name)

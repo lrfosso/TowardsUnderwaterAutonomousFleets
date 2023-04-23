@@ -7,7 +7,7 @@ import os
 
 #----------------------------Settings----------------------------#
 n_agents = 2
-folder = "current_z03"
+folder = "current_03/current_-z03"
 save_fig = True
 display_fig = False
 
@@ -27,31 +27,32 @@ def xyz_plot(df1, df2, save_fig, display_fig):
     fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
 
     fig.suptitle('Position')
-    ax1.plot(full_sec1, df1['x_ref'], 'r', label='ref_x')
+    ax1.plot(full_sec1, df1['x_ref'], 'black', label='Ref x')
     ax1.plot(full_sec1, df1['x'], 'b', label='x1')
     ax1.plot(full_sec2, df2['x'], 'g', label='x2')
     ax1.legend(loc='upper left')
     ax1.grid()
 
-    ax2.plot(full_sec1, df1['y_ref'], 'r', label='ref_y')
+    ax2.plot(full_sec1, df1['y_ref'], 'black', label='Ref y')
     ax2.plot(full_sec1, df1['y'], 'b', label='y1')
-    ax2.plot(full_sec2, df2['x'], 'g', label='y2')
+    ax2.plot(full_sec2, df2['y'], 'g', label='y2')
     ax2.legend(loc='upper left')
     ax2.grid()
 
-    ax3.plot(full_sec1, df1['z_ref'], 'r', label='ref_z')
+    ax3.plot(full_sec1, df1['z_ref'], 'black', label='Ref z')
     ax3.plot(full_sec1, df1['z'], 'b', label='z1')
-    ax3.plot(full_sec2, df2['x'], 'g', label='z2')
+    ax3.plot(full_sec2, df2['z'], 'g', label='z2')
     ax3.legend(loc='upper left')
     ax3.grid()
 
 
-    plot_name = "2D_xyz_"+file[45:].replace(".csv", ".png")
+    plot_name = "2D_xyz_"+file[43:].replace(".csv", ".png")
     plot_name = plot_name.replace("--rov2", "")
     if(save_fig):
         print("Saving figure as:",plot_name)
         plt.savefig((folder+"/"+plot_name), dpi=300)
     if(display_fig):
+        print("Displaying figure",file[45:])
         plt.show()
 
 def angle_plot(df1,df2, save_fig, display_fig):
@@ -110,16 +111,16 @@ def distance_from_ref(df1,df2, save_fig, display_fig):
 
     fig.suptitle('Distance from reference')
 
-    ax1.plot(full_sec1, abs(df1['x']-df1['x_ref']), 'b', label='Delta x')
+    ax1.plot(full_sec1, abs(df1['x']-df1['x_ref']), 'r', label='Delta x')
     ax1.plot(full_sec1, abs(df1['y']-df1['y_ref']), 'g', label='Delta y')
-    ax1.plot(full_sec1, abs(df1['z']-df1['z_ref']), 'r', label='Delta z')
+    ax1.plot(full_sec1, abs(df1['z']-df1['z_ref']), 'b', label='Delta z')
     ax1.set(ylabel='Distance [m]', title="ROV 1")
     ax1.legend(loc='upper left')
     ax1.grid()
 
-    ax2.plot(full_sec2, abs(df2['x']-df2['x_ref']), 'b', label='Delta x')
+    ax2.plot(full_sec2, abs(df2['x']-df2['x_ref']), 'r', label='Delta x')
     ax2.plot(full_sec2, abs(df2['y']-df2['y_ref']), 'g', label='Delta y')
-    ax2.plot(full_sec2, abs(df2['z']-df2['z_ref']), 'r', label='Delta z')
+    ax2.plot(full_sec2, abs(df2['z']-df2['z_ref']), 'b', label='Delta z')
     ax2.set(xlabel='time (s)', ylabel='Distance [m]', title="ROV 2")
     ax2.legend(loc='upper left')
     ax2.grid()
