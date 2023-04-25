@@ -10,7 +10,7 @@ class MyROVModel():
 
         ########## PARAMETERS #############      
 
-        m = 1                    # Kg
+        m = 11.5                    # Kg
         W = m*9.81                   # m*g, Newton
         #W = 114.8                   # Newton neutral buoyancy
         B = 114.8                   # buoyancy, Newton
