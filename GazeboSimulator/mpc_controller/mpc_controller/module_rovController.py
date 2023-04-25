@@ -29,9 +29,6 @@ class MyController():
         self.x_3 = 0 
         self.y_3 = 0
         self.z_3 = 0
-        self.u_c = 0
-        self.v_c = 0
-        self.w_c = 0
 #        self.x_4 = 0 
 #        self.y_4 = 0
 #        self.z_4 = 0
@@ -60,7 +57,7 @@ class MyController():
             case 2: #Two agents
                 mterm = ((35*(_x_rov1['x']-_tvp_rov1['x_sp'])**2
                 + 35*(_x_rov1['y']-_tvp_rov1['y_sp'])**2
-                + 35*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
+                + 60*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
                 + 20*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
                 +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
                 +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
@@ -141,7 +138,13 @@ class MyController():
                     (np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
                     +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
                     +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
-                    , ub=((FOV_range_deg/180)/3.14), soft_constraint=True, penalty_term_cons=penalty_term_FOV[n_multi_agent-2]
+                    , ub=0, soft_constraint=True, penalty_term_cons=penalty_term_FOV[n_multi_agent-2]
+                    )
+                self.mpc.set_nl_cons("FOV1_hard",
+                    (np.cos((FOV_range_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
+                    +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
+                    , ub=0, soft_constraint=False
                     )
                 ## Legge til hard cons?
         if(n_multi_agent>2):
@@ -235,9 +238,6 @@ class MyController():
             tvp_template['_tvp',k,'x_3'] =  self.x_3
             tvp_template['_tvp',k,'y_3'] =  self.y_3
             tvp_template['_tvp',k,'z_3'] =  self.z_3
-            tvp_template['_tvp',k,'u_c'] =  self.u_c
-            tvp_template['_tvp',k,'v_c'] =  self.v_c
-            tvp_template['_tvp',k,'w_c'] =  self.w_c
 #            tvp_template['_tvp',k,'x_4'] =  self.x_4
 #            tvp_template['_tvp',k,'y_4'] =  self.y_4
 #            tvp_template['_tvp',k,'z_4'] =  self.z_4

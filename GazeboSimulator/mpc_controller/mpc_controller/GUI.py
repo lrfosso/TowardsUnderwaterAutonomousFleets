@@ -18,10 +18,12 @@ class GUI(Node):
     def __init__(self):
         ###### INIT ROS2 ############################################################################
         super().__init__('GUI')
+        ###### INIT ROS2 PARAMETERS
         self.declare_parameter('fleet_quantity')
         self.declare_parameter('FOV_max')
         self.n_agents = self.get_parameter('fleet_quantity').get_parameter_value().integer_value
         self.FOV_limit = self.get_parameter('FOV_max').get_parameter_value().double_value
+        ###### INIT SUBSCRIBERS AND PUBLISHERS
         self.subscription = self.create_subscription(
             Odometry,
             '/bluerov2_pid/bluerov2/observer/nlo/odom_ned',
@@ -74,7 +76,6 @@ class GUI(Node):
                 '/bluerov4_mpc/angle/from_4_to_3',
                 self.angle_callback4to3,
                 10)
-        
 
         self.subscription  # prevent unused variable warning
         self.publisher_1 = self.create_publisher(Vector3, '/trajectory_waypoints', 10)
@@ -98,13 +99,13 @@ class GUI(Node):
         ###### INIT PYSIMPLEGUI ######################################################################
         self.setup_layout()
         self.window = sg.Window('ROV Simulator GUI', self.layout, finalize=True,size=(1800, 900), element_justification='center')
+        ## Changing the color of the cursor in the input boxes
         self.window['-FILENAME-'].Widget.config(insertbackground='black')
         self.window['-X-'].Widget.config(insertbackground='black')
         self.window['-Y-'].Widget.config(insertbackground='black')
         self.window['-Z-'].Widget.config(insertbackground='black')
         self.canvas_elem = self.window['-CANVAS-']
         self.canvas = self.canvas_elem.TKCanvas
-        # draw the intitial scatter plot
         self.fig_agg = self.draw_figure(self.canvas, self.fig)
 
         ## initialize the variables to avoid errors
@@ -140,6 +141,8 @@ class GUI(Node):
             self.open_window()
         if event == '-SET_CUR-':
             self.set_ocean_current()
+        if event == '-RESET_CUR-':
+            os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 0, y:0, z:0'")
         
 
         if event == '-TEST1-':
@@ -358,7 +361,8 @@ class GUI(Node):
             sg.Text('4 to 2:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
             sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_42-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
             ],
-            [sg.Text('', size=(73, 1), background_color="white"),
+            [sg.Button('Reset ocean current', size=(15, 1), font=font, key='-RESET_CUR-', button_color=('black', button_col)),
+            sg.Text('', size=(48, 1), background_color="white"),
             sg.Text('2 to 4:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
             sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_24-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
             sg.Text('3 to 4:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_agents > 2 else sg.Text('',size=(0,0), background_color="white"),
@@ -423,7 +427,7 @@ class GUI(Node):
         if(invalid):
             sg.popup('Please enter a valid number for the current coordinates!',background_color="yellow", text_color="black", font="Helvetica 14", title="Warning")
         else:
-            os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: {}, y:{}, z:{}'".format(self.values['-CUR_Y-'], self.values['-CUR_X-'], "-"+self.values['-CUR_Z-']))
+            os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: {}, y:{}, z:{}'".format(self.values['-CUR_Y-'], self.values['-CUR_X-'], (-float(self.values['-CUR_Z-']))))
             
         invalid = False
 
