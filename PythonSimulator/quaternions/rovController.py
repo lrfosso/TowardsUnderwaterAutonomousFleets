@@ -12,6 +12,10 @@ class MyController():
         self.e_2_setp = 0
         self.e_3_setp = 1
 
+        self.u_c = 0
+        self.v_c = 0
+        self.w_c = 0
+
         self.x_2 = 0 
         self.y_2 = 0
         self.z_2 = 0
@@ -23,6 +27,7 @@ class MyController():
                 't_step':0.1,
                 'n_robust':2,
                 'store_full_solution':True,
+                'nlpsol_opts': {'ipopt.max_iter': 25},
         
                 }
         
@@ -113,6 +118,9 @@ class MyController():
             tvp_template['_tvp',k,'x_2'] =  self.x_2
             tvp_template['_tvp',k,'y_2'] =  self.y_2
             tvp_template['_tvp',k,'z_2'] =  self.z_2
+            tvp_template['_tvp',k,'u_c'] =  self.u_c
+            tvp_template['_tvp',k,'v_c'] =  self.v_c
+            tvp_template['_tvp',k,'w_c'] =  self.w_c
     
         return tvp_template
 

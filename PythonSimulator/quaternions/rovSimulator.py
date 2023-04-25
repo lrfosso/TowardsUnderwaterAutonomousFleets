@@ -8,7 +8,8 @@ from scipy.spatial.transform import Rotation
 
 import do_mpc
 
-from rovModel import *
+from rovModel_Current import * #current in the model
+#from rovModel import * # no current in the model
 
 from rovController import *
 import math
@@ -70,6 +71,10 @@ def euler_from_quaternion(w, x, y, z):
      
         return roll_x, pitch_y, yaw_z # in radians
 
+def tvp_fun1(t_now):
+    return(tvp_template1)
+def tvp_fun2(t_now):
+    return(tvp_template2)
 #Creates parameters for cubic polynomial path
 def trajectory_parameter_generation(x0,dx0,x1,dx1, t0, t1):
     
@@ -126,8 +131,8 @@ simulator2 = do_mpc.simulator.Simulator(modelRov2.model)
 tvp_template1 = simulator1.get_tvp_template()
 tvp_template2 = simulator2.get_tvp_template()
 
-simulator1.set_tvp_fun(tvp_template1)
-simulator2.set_tvp_fun(tvp_template2)
+simulator1.set_tvp_fun(tvp_fun1)
+simulator2.set_tvp_fun(tvp_fun2)
 
 params_simulator = {
     # Note: cvode doesn't support DAE systems.
@@ -216,8 +221,11 @@ quart_sp2 = []
 u0_1 = np.zeros((8,1))
 u0_2 = np.zeros((8,1))
 
-max_itr = 200
+max_itr = 100
 for i in range(max_itr):
+    mpc1.u_c = 0
+    mpc1.v_c = 0
+    mpc1.w_c = 0
     print(x0_1)
     print(x0_2)
     u0_1 = mpc1.mpc.make_step(x0_1)
