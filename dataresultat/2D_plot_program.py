@@ -6,10 +6,10 @@ import os
 
 
 #----------------------------Settings----------------------------#
-n_agents = 2
-folder = "current_03/current_-z03"
-save_fig = True
-display_fig = False
+n_agents = 2  #DENNE ER IKKE TILPASSET 3 AGENT ENDA
+folder = "disturbances/plus_minus_3"
+save_fig = False
+display_fig = True
 
 #----------------------------Functions----------------------------#
 def full_sec(df):
@@ -77,25 +77,72 @@ def angle_plot(df1,df2, save_fig, display_fig):
     if(display_fig):
         plt.show()
 
+def interpolate(full_sec1, values1, full_sec2, values2):
+    interpo_list = []
+    test = True
+    values1 = values1.tolist()
+    values2 = values2.tolist()
+    if(len(full_sec1)<len(full_sec2)):
+        for i in range(len(full_sec1)):
+            interpo_list.append(interpolate_point(full_sec1[i], full_sec2, values2))
+        interpo_full_sec = full_sec1
+        interpo_df_number = 2
+    else:
+        for i in range(len(full_sec2)):
+            interpo_list.append(interpolate_point(full_sec2[i], full_sec1, values1))
+        interpo_full_sec = full_sec2
+        interpo_df_number = 1
+    return interpo_full_sec, interpo_list, interpo_df_number
+        
+
+def interpolate_point(x, full_sec, values):
+    if x == 0:
+        return values[0]
+    bigger = []
+    bigger_index = []
+    smaller = []
+    smaller_index = []
+    check1 = False
+    check2 = False 
+    for i, element in enumerate(full_sec):
+        if (x < element):
+            bigger.append(element)
+            bigger_index.append(i)
+            check1 = True
+        elif (x > element):
+            smaller.append(element)
+            smaller_index.append(i)
+            check2 = True
+    if(check1 and check2):
+        top_value_index = full_sec.index(max(smaller))
+        bottom_value_index = full_sec.index(min(bigger))
+        return ((values[top_value_index]-values[bottom_value_index])/(full_sec[top_value_index]-full_sec[bottom_value_index]))*(x-full_sec[bottom_value_index])+values[bottom_value_index]
+    else:
+        return values[-1]
+
+
 def distance_rovs(df1,df2, save_fig, display_fig):
     #### FUNKER IKKE
     full_sec1 = full_sec(df1)
     full_sec2 = full_sec(df2)
 
     fig, ax = plt.subplots()
-    distance = []
-    if(len(full_sec1)<len(full_sec2)):
-        for i in range(len(full_sec1)):
-            distance.append(np.sqrt((df1['x'][i]-df2['x'][i])**2+(df1['y'][i]-df2['y'][i])**2+(df1['z'][i]-df2['z'][i])**2))
-        ax.plot(full_sec1, distance, 'b', label='Distance')
+    interpo_list_x = interpolate(full_sec1, df1['x'], full_sec2, df2['x'])
+    interpo_list_y = interpolate(full_sec1, df1['y'], full_sec2, df2['y'])
+    interpo_list_z = interpolate(full_sec1, df1['z'], full_sec2, df2['z'])
+    #for i in range(len(interpo_list[1])):
+    #    print("{}\t{}\t{}\t{}\t{}\t{}".format(interpo_list[0][i], interpo_list[1][i], full_sec1[i], df1['x'][i], full_sec2[i], df2['x'][i]))
 
-    else:
-        for i in range(len(full_sec2)):
-            distance.append(np.sqrt((df1['x'][i]-df2['x'][i])**2+(df1['y'][i]-df2['y'][i])**2+(df1['z'][i]-df2['z'][i])**2))
-        ax.plot(full_sec2, distance, 'b', label='Distance')
-        
+    if(interpo_list_x[2]==1):
+        ax.plot(full_sec2, [np.sqrt((interpo_list_x[1][i]-df2['x'][i])**2+(interpo_list_y[1][i]-df2['y'][i])**2+(interpo_list_z[1][i]-df2['z'][i])**2) for i in range(len(interpo_list_x[1]))], 'r', label='Distance')
+    elif(interpo_list_x[2]==2):
+        ax.plot(full_sec1, [np.sqrt((interpo_list_x[1][i]-df1['x'][i])**2+(interpo_list_y[1][i]-df1['y'][i])**2+(interpo_list_z[1][i]-df1['z'][i])**2) for i in range(len(interpo_list_x[1]))], 'r', label='Distance')
+
+    ax.legend(loc='upper left')
     ax.set(xlabel='time (s)', ylabel='Distance (m)',title="Distance between ROVs")
+    ax.set_ylim(0, 5)
     ax.grid()
+
     plot_name = "2D_Dist_ROV_"+file[45:].replace(".csv", ".png")
     plot_name = plot_name.replace("--rov2", "")
     if(save_fig):
@@ -156,7 +203,7 @@ for file in files:
 
     xyz_plot(df1, df2, save_fig, display_fig)
     angle_plot(df1, df2, save_fig, display_fig)
-    #distance_rovs(df1, df2, save_fig, display_fig)
+    distance_rovs(df1, df2, save_fig, display_fig)
     distance_from_ref(df1, df2, save_fig, display_fig)
 
     
