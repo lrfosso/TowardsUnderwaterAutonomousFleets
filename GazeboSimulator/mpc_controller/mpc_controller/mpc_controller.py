@@ -1,11 +1,20 @@
+# Creating a path to modules
 import sys
 import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
+from module_rovModel import *
+from module_rovController import *
+
+# Python tools
 import numpy as np
-import sys
+import logging
+import csv
+from datetime import datetime
 from casadi import *
 import do_mpc
+
+# ROS2 Libraries and Tools
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
@@ -15,11 +24,7 @@ from std_msgs.msg import Int32
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Vector3
 from rosgraph_msgs.msg import Clock
-from module_rovModel import *
-from module_rovController import *
-import logging
-import csv
-from datetime import datetime
+
 class BluerovPubSubNode(Node):
     def __init__(self):
         super().__init__('bluerov_pubsub')
@@ -62,9 +67,9 @@ class BluerovPubSubNode(Node):
         self.mpc1 = MyController(self.modelRov, # MPC-controller parameters
                                 n_multi_agent=self.fleet_quantity,
                                 radius_setp=self.radius_setp,
-                                distance_rovs=self.distance_rovs,
-                                FOV_range_deg=self.FOV_range_deg,
-                                FOV_range_soft_deg=self.FOV_range_soft_deg,
+                                distance_rovs=self.distance_rovs, # Distance between ROVs
+                                FOV_range_deg=self.FOV_range_deg, # Hard FOV constraint
+                                FOV_range_soft_deg=self.FOV_range_soft_deg, # Soft FOV constraint
                                 FOV_constraint= self.FOV_constraint
                                 )
         
@@ -151,30 +156,37 @@ class BluerovPubSubNode(Node):
             self.angle_publisher2 = self.create_publisher(Float64, 'angle/from_{}_to_{}'.format(self.main_id, self.third_rov), 10) ## TO BE REMOVED AT A LATER STAGE
 
         self.main_odometry_subscriber #Prevent unused variable warning
-        cycle_time_publish = 0.05  # seconds
-        self.timer = self.create_timer(cycle_time_publish, self.publisher_callback)
+        self.timer = self.create_timer(self.cycle_time_publish, self.publisher_callback)
 
+    # Class functions
     def vector_between_rovs(self,x1,y1,z1,x2,y2,z2):
-        """Gets xyz coords of ROVs as input. Returns the vector between them (- heave)"""
+        """
+        Gets xyz coords of ROVs as input. Returns the vector between them (- heave)
+        """
         x = (x2-x1)
         y = (y2-y1)
         z = (z2-z1)
         return [x, y, z]
     
     def z_directional_vector_from_quaternion(self, q0, e1, e2, e3):
-        """Returns the directional vector of the ROV in -z direction"""
+        """
+        Returns the directional vector of the ROV in -z direction
+        """
         x = -2*(e1*e3+e2*q0)
         y = -2*(e2*e3-e1*q0)
         z = -1+2*(e1**2+e2**2)
         return [x, y, z]
     
     def x_directional_vector_from_quaternion(self, q0, e1, e2, e3):
-        """Returns the directional vector of the ROV in the x direction (surge)"""
+        """
+        Returns the directional vector of the ROV in the x direction (surge)
+        """
         x = 1-2*(e2**2+e3**2)
         y = 2*(e1*e2+e3*q0)
         z = 2*(e1*e3-e2*q0)
         return [x, y, z]
     
+    # Callback functions
     def clock_callback(self, msg):
         self.sec = msg.clock.sec 
         self.nanosec = msg.clock.nanosec 
@@ -192,7 +204,9 @@ class BluerovPubSubNode(Node):
         self.filename_data = msg.data
 
     def reference_callback(self,msg):
-        """Subscriber function for the reference topic"""
+        """
+        Subscriber function for the reference topic
+        """
         self.mpc1.x_setp = msg.x
         self.mpc1.y_setp = msg.y
         self.mpc1.z_setp = msg.z
@@ -219,7 +233,9 @@ class BluerovPubSubNode(Node):
                 self.mpc1.e_3_setp = axis[2] * np.sin(theta/2)
 
     def main_odemetry_callback(self, msg):
-        """Subscriber function for the main ROV odometry"""
+        """
+        Subscriber function for the main ROV odometry
+        """
         self.odometry_list = [msg.pose.pose.position.x,
                               msg.pose.pose.position.y,
                               msg.pose.pose.position.z,
@@ -257,7 +273,9 @@ class BluerovPubSubNode(Node):
                 writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test])
     
     def odometry_callback_2(self, msg):
-        """Subscriber function for 2nd ROV odometry"""
+        """
+        Subscriber function for 2nd ROV odometry
+        """
         self.mpc1.x_2 = msg.pose.pose.position.x
         self.mpc1.y_2 = msg.pose.pose.position.y
         self.mpc1.z_2 = msg.pose.pose.position.z
@@ -270,7 +288,9 @@ class BluerovPubSubNode(Node):
             self.angle_publisher.publish(angle)
 
     def odometry_callback_3(self, msg):
-        """Subscriber function for 3rd ROV odometry"""
+        """
+        Subscriber function for 3rd ROV odometry
+        """
         self.mpc1.x_3 = msg.pose.pose.position.x
         self.mpc1.y_3 = msg.pose.pose.position.y
         self.mpc1.z_3 = msg.pose.pose.position.z
@@ -283,12 +303,16 @@ class BluerovPubSubNode(Node):
             self.angle_publisher2.publish(angle)
     
     def kill_node_callback(self, msg):
-        """Subscriber function for the kill node signal"""
+        """
+        Subscriber function for the kill node signal
+        """
         if(msg.data == 1 and self.ready_signal_mpc):
             rospy.signal_shutdown("Killing node")
 
     def publisher_callback(self):
-        """Running the MPC and publishing the thrusts"""
+        """
+        Running the MPC and publishing to thrusters
+        """
         # Making MPC step
         if(self.ready_signal_mpc): #If the odometry is ready
             self.u0_1 = self.mpc1.mpc.make_step(self.x0)
