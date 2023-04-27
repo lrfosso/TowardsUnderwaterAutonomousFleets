@@ -7,12 +7,12 @@ import os
 
 #----------------------------Settings----------------------------#
 n_agents = 2  #DENNE ER IKKE TILPASSET 3 AGENT ENDA
-folder = "disturbances/plus_minus_3"
-save_fig = False
-display_fig = True
+folder = "disturbances/plus_minus_1"
+save_fig = True
+display_fig = False
 FOV_max = 60
 distance_ROVs = 1
-title = "Disturbance +/-3m:"
+title = "Disturbance in signal +/- 1m:"
 
 #----------------------------Functions----------------------------#
 def full_sec(df):

@@ -8,8 +8,8 @@ import os
 #----------------------------Settings----------------------------#
 n_agents = 2
 folder = "disturbances/plus_minus_3"
-save_fig = False
-display_fig = True
+save_fig = True
+display_fig = False
 
 #----------------------------------------------------------------#
 
@@ -32,6 +32,16 @@ files = list(filter(None, files))
     
 
 for file in files:
+    if("circle" in file):
+        type_fig = "circle"
+    elif("torus" in file):
+        type_fig = "torus"
+    elif("spiral" in file):
+        type_fig = "spiral"
+    elif("line" in file):
+        type_fig = "line"
+    else:
+        type_fig = "unknown"
     # Read data from csv file
     fig = plt.figure()
     
@@ -58,8 +68,7 @@ for file in files:
         full_sec3 = full_sec(df3)
         ax.plot3D(df3['x'], df3['y'], df3['z'], 'blue')
     
-    plot_name = "3D_"+file[43:].replace(".csv", ".png")
-    plot_name = plot_name.replace("--rov2", "")
+    plot_name = "3D_"+type_fig
     if(save_fig):
         print("Saving figure as:",plot_name)
         plt.savefig((folder+"/"+plot_name), dpi=300)
