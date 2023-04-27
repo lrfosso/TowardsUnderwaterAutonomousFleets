@@ -49,7 +49,19 @@ def multi_launch(context, *args, **kwargs):
        parameters=[param]
     )
     launch_agents.append(trajectory_node)
-
+    
+    joystick_node = Node(
+       package='joy_con',
+       executable='joy_con_node',
+       output='log',
+    )
+    launch_agents.append(joystick_node)
+    joys_node = Node(
+       package='joy',
+       executable='joy_node',
+       output='log',
+    )
+    launch_agents.append(joy_node)
     gui_node = Node(
         package='mpc_controller',
         executable='GUI',
