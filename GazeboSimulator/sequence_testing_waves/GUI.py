@@ -248,6 +248,7 @@ class GUI(Node):
                     self.cooldown_start_std_test = False
                     self.waves_active = True
                     self.wave_direction = True
+                    self.std_test_nr += 1
                     self.wave_period_timer = time.time()
                     self.std_test_ready_next = False
                     self.init_next_test = True
