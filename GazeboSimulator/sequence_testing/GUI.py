@@ -139,6 +139,9 @@ class GUI(Node):
         self.init_next_test = True
         self.sequence_test = False
         self.start_cooldown = time.time()
+        self.std_test_nr = 0
+
+        os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 0, y:0, z:0'")
 
 
 
@@ -191,13 +194,13 @@ class GUI(Node):
 
 
 
-        
-
-        standard_test = ["circle", "torus", "line", "spiral"]
+        test_name = "distrubance_{}_".format(self.std_test_nr)
+        standard_test = [test_name+"circle", test_name+"torus", test_name+"line", test_name+"spiral"]
 
         if (self.std_test_ready_next and self.sequence_test):
             if(self.init_next_test):
                 if(self.standard_test_num == 4):
+                    self.std_test_nr += 1
                     self.standard_test_num = 1
                 else:
                     self.standard_test_num += 1
