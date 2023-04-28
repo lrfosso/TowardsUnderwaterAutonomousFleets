@@ -210,6 +210,7 @@ class GUI(Node):
             if(self.init_next_test):
                 if(self.standard_test_num == 4):
                     self.standard_test_num = 1
+                    self.std_test_nr += 1
                 else:
                     self.standard_test_num += 1
                 self.init_next_test = False
@@ -237,7 +238,6 @@ class GUI(Node):
                     self.cooldown_start_std_test = True
                 if(cooldown_timer > self.start_cooldown + 5):
                     self.get_logger().info("Ready go next")
-
                     self.record.data = True
                     self.publisher_record.publish(self.record)
                     self.window['-RECORD-'].update(text="Stop")
@@ -248,7 +248,7 @@ class GUI(Node):
                     self.cooldown_start_std_test = False
                     self.waves_active = True
                     self.wave_direction = True
-                    self.std_test_nr += 1
+                    
                     self.wave_period_timer = time.time()
                     self.std_test_ready_next = False
                     self.init_next_test = True
