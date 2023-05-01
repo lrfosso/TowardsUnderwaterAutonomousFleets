@@ -56,7 +56,7 @@ def multi_launch(context, *args, **kwargs):
        output='log',
     )
     launch_agents.append(joystick_node)
-    joys_node = Node(
+    joy_node = Node(
        package='joy',
        executable='joy_node',
        output='log',
