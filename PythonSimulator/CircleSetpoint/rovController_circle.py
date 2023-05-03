@@ -3,7 +3,7 @@ from casadi import *
 class MyController():
 
 
-    def __init__(self, rovModel1, rovModel2, trackMode,  setPoints = [0,0,0,0,0,0,0,0,0,0,0,0], state_2 = [0,0]):
+    def __init__(self, rovModel1, rovModel2, trackMode,  setPoints = [0,0,0,0,0,0,0,0,0,0,0,0], state_2 = [0,0,0]):
         self.x_setp = setPoints[0]
         self.y_setp = setPoints[1]
         self.z_setp = setPoints[2]
@@ -13,6 +13,7 @@ class MyController():
 
         self.x_2 = state_2[0]
         self.y_2 = state_2[1]
+        self.z_2 = state_2[2]
 
         self.mpc = do_mpc.controller.MPC(rovModel1.model)
         
@@ -46,7 +47,7 @@ class MyController():
             case 1:
                 mterm = (_x_rov1['x'] + 2 - _tvp_rov1['x_sp'])**2 + (_x_rov1['y'] + 0 - _tvp_rov1['y_sp'])**2 + (_x_rov1['z'] + 2 - _tvp_rov1['z_sp'])**2 + (_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 + (_x_rov1['theta'] - _tvp_rov1['theta_sp'])**2 +(_x_rov1['psi']  - _tvp_rov1['psi_sp'])**2  
                 lterm = (_x_rov1['x'] + 2 - _tvp_rov1['x_sp'])**2 + (_x_rov1['y'] + 0 - _tvp_rov1['y_sp'])**2 + (_x_rov1['z'] + 2 - _tvp_rov1['z_sp'])**2 +(_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 + (_x_rov1['theta']  - _tvp_rov1['theta_sp'])**2 +(_x_rov1['psi']  - _tvp_rov1['psi_sp'])**2
-            case 2:
+            case 3:
                 mterm =   (_x_rov1['theta']- _tvp_rov1['theta_sp'] )**2 + (_x_rov1['psi'] - _tvp_rov1['psi_sp'])**2 + (_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2 +(_x_rov1['z']-_tvp_rov1['z_sp'])**2 + (_x_rov1['y']-_tvp_rov1['y_sp'])**2 + (_x_rov1['x']-_tvp_rov1['x_sp'])**2
                 lterm = ((((_tvp_rov1['x_sp']-_x_rov1['x'])**2+(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius**2)**2 +
                         ((((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2)-lengde**2)**2)*0.1 +
@@ -54,6 +55,26 @@ class MyController():
                         (_x_rov1['z']-_tvp_rov1['z_sp'])**2 + (_x_rov1['phi'])**2 +
                         (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2+_u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+_u_rov1['u_7']**2+_u_rov1['u_8']**2)*0.01
                         )
+            case 4:
+                mterm = ((_x_rov1['x']-_tvp_rov1['x_sp'])**2
+                        + (_x_rov1['y']-_tvp_rov1['y_sp'])**2
+                        + (_x_rov1['z']-_tvp_rov1['z_sp'])**2
+                        + 4*(_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2
+                        + 4*(_x_rov1['theta']- _tvp_rov1['theta_sp'] )**2
+                        + 4*(_x_rov1['psi'] - _tvp_rov1['psi_sp'])**2
+                )
+                lterm = (mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2+_u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+_u_rov1['u_7']**2+_u_rov1['u_8']**2)*0.01)
+            case 2:
+                mterm = ((35*(_x_rov1['x']-_tvp_rov1['x_sp'])**2
+                + 35*(_x_rov1['y']-_tvp_rov1['y_sp'])**2
+                + 60*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
+                + 20*(_x_rov1['phi'] - _tvp_rov1['phi_sp'])**2
+                + 20*(_x_rov1['theta']-_tvp_rov1['theta_sp'])**2
+                + 20*(_x_rov1['psi'] - _tvp_rov1['psi_sp'])**2
+                )
+                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2 +
+                                 _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
+                                 _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
 
         tvp_template = self.mpc.get_tvp_template()
         
@@ -68,29 +89,43 @@ class MyController():
                 u_7 = 0.1,
                 u_8 = 0.1
                 )
-        
-        
+        distance_rovs = 2
+        self.mpc.set_nl_cons("Distance2", 
+                (distance_rovs**2-((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)), 
+                ub=0, soft_constraint=True, penalty_term_cons=70,maximum_violation=((distance_rovs*0.9)**2))
+        self.mpc.set_nl_cons("FOV1",
+                    (np.cos((30/180)*3.14)*distance_rovs-(cos(_x_rov1['psi'])*cos(_x_rov1['theta']) )*(_tvp_rov1['x_2']-_x_rov1['x'])
+                    +(sin(_x_rov1['psi'])*cos(_x_rov1['theta'] )*(_tvp_rov1['y_2']-_x_rov1['y'])
+                    +(sin(_x_rov1['theta']) )*(_tvp_rov1['z_2']-_x_rov1['z'])))
+                    , ub=0, soft_constraint=True, penalty_term_cons=70
+                    )
+        #self.mpc.set_nl_cons("FOV1_hard",
+        #            (np.cos((60/180)*3.14)*distance_rovs-(cos(_x_rov1['psi'])*cos(_x_rov1['theta']) )*(_tvp_rov1['x_2']-_x_rov1['x'])
+        #            +(sin(_x_rov1['psi'])*cos(_x_rov1['theta'] )*(_tvp_rov1['y_2']-_x_rov1['y'])
+        #            +(sin(_x_rov1['theta']) )*(_tvp_rov1['z_2']-_x_rov1['z'])))
+        #            , ub=0, soft_constraint=False, penalty_term_cons= 1000
+        #            )
         #self.mpc.set_nl_cons("FOV", -((cos(_x_rov1['psi'])*cos(_x_rov1['theta'])*(_tvp_rov1['x_2']-_x_rov1['x'])+sin(_x_rov1['psi'])*cos(_x_rov1['theta'])*(_tvp_rov1['y_2']-_x_rov1['y'])+sin(_x_rov1['theta']*(_tvp_rov1['z_2']-_x_rov1['z']))) / (((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['x'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)**0.5)), ub=1, soft_constraint=False)
         self.mpc.set_objective(mterm=mterm,lterm=lterm)
         
-        self.mpc.bounds['lower', '_u', 'u_1'] = - 10
-        self.mpc.bounds['lower', '_u', 'u_2'] = - 10
-        self.mpc.bounds['lower', '_u', 'u_3'] = - 10
-        self.mpc.bounds['lower', '_u', 'u_4'] = - 10
-        self.mpc.bounds['lower', '_u', 'u_5'] = - 10
-        self.mpc.bounds['lower', '_u', 'u_6'] = - 10
-        self.mpc.bounds['lower', '_u', 'u_7'] = - 10
-        self.mpc.bounds['lower', '_u', 'u_8'] = - 10
+        self.mpc.bounds['lower', '_u', 'u_1'] = - 6.2
+        self.mpc.bounds['lower', '_u', 'u_2'] = - 6.2
+        self.mpc.bounds['lower', '_u', 'u_3'] = - 6.2
+        self.mpc.bounds['lower', '_u', 'u_4'] = - 6.2
+        self.mpc.bounds['lower', '_u', 'u_5'] = - 6.2
+        self.mpc.bounds['lower', '_u', 'u_6'] = - 6.2
+        self.mpc.bounds['lower', '_u', 'u_7'] = - 6.2
+        self.mpc.bounds['lower', '_u', 'u_8'] = - 6.2
         
         
-        self.mpc.bounds['upper', '_u', 'u_1'] =  10
-        self.mpc.bounds['upper', '_u', 'u_2'] =  10
-        self.mpc.bounds['upper', '_u', 'u_3'] =  10
-        self.mpc.bounds['upper', '_u', 'u_4'] =  10
-        self.mpc.bounds['upper', '_u', 'u_5'] =  10
-        self.mpc.bounds['upper', '_u', 'u_6'] =  10
-        self.mpc.bounds['upper', '_u', 'u_7'] =  10
-        self.mpc.bounds['upper', '_u', 'u_8'] =  10
+        self.mpc.bounds['upper', '_u', 'u_1'] =  6.2
+        self.mpc.bounds['upper', '_u', 'u_2'] =  6.2
+        self.mpc.bounds['upper', '_u', 'u_3'] =  6.2
+        self.mpc.bounds['upper', '_u', 'u_4'] =  6.2
+        self.mpc.bounds['upper', '_u', 'u_5'] =  6.2
+        self.mpc.bounds['upper', '_u', 'u_6'] =  6.2
+        self.mpc.bounds['upper', '_u', 'u_7'] =  6.2
+        self.mpc.bounds['upper', '_u', 'u_8'] =  6.2
         
         
         self.mpc.setup()
@@ -107,6 +142,7 @@ class MyController():
 
             tvp_template['_tvp',k,'x_2'] =  self.x_2
             tvp_template['_tvp',k,'y_2'] =  self.y_2
+            tvp_template['_tvp',k,'z_2'] =  self.z_2
     
         return tvp_template
 

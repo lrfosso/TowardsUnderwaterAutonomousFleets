@@ -25,7 +25,7 @@ import pandas as pd
 csv_file_1_name = "data1"           #Name of csv file 1 without .csv
 csv_file_2_name = "data2"           #Name of csv file 2 without .csv
 saving_option = False               #True for saving animation as GIF
-save_name = "3D_Simulator_test"     #Name of saved file without .gif
+save_name = "With_hardcon"     #Name of saved file without .gif
 fps_value = 30                      #Frames per second of GIF
 
 ############# Import and format data from csv file ################
@@ -38,9 +38,9 @@ t_1 = list(range(len(x_1)))
 t_1 = [float(i) for i in t_1]
 phi_1 = list(df_1[df_1.columns[5]]) #Yaw
 theta_1 = list(df_1[df_1.columns[4]]) #Pitch
-x_sp_1 = list(df_1[df_1.columns[12]])
-y_sp_1 = list(df_1[df_1.columns[13]])
-z_sp_1 = list(df_1[df_1.columns[14]])
+x_sp_1 = list(df_1[df_1.columns[15]])
+y_sp_1 = list(df_1[df_1.columns[16]])
+z_sp_1 = list(df_1[df_1.columns[17]])
 df_1 = pd.DataFrame({"time": t_1 ,"x" : x_1, "y" : y_1, "z" : z_1, "phi" : phi_1, "theta" : theta_1, "x_sp" : x_sp_1, "y_sp" : y_sp_1, "z_sp" : z_sp_1})
 
 #Second ROV
@@ -52,9 +52,9 @@ t_2 = list(range(len(x_2)))
 t_2 = [float(i) for i in t_2]
 phi_2 = list(df_2[df_2.columns[5]]) #Yaw
 theta_2 = list(df_2[df_2.columns[4]]) #Pitch
-x_sp_2 = list(df_2[df_2.columns[12]])
-y_sp_2 = list(df_2[df_2.columns[13]])
-z_sp_2 = list(df_2[df_2.columns[14]])
+x_sp_2 = list(df_2[df_2.columns[15]])
+y_sp_2 = list(df_2[df_2.columns[16]])
+z_sp_2 = list(df_2[df_2.columns[17]])
 df_2 = pd.DataFrame({"time": t_2 ,"x" : x_2, "y" : y_2, "z" : z_2, "phi" : phi_2, "theta" : theta_2, "x_sp" : x_sp_2, "y_sp" : y_sp_2, "z_sp" : z_sp_2})
 
 ############# Functions ###########################################
@@ -127,9 +127,9 @@ def update_graph(num):
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ## Setting up limits and labels
-ax.set(xlim3d=(-10, 10), xlabel='X')
-ax.set(ylim3d=(-10, 10), ylabel='Y')
-ax.set(zlim3d=(-10, 10), zlabel='Z')
+ax.set(xlim3d=(-20, 20), xlabel='X')
+ax.set(ylim3d=(-20, 20), ylabel='Y')
+ax.set(zlim3d=(-20, 20), zlabel='Z')
 ## Setting up text
 title = ax.set_title('MPC plot')
 sample_count = ax.text(0, 0, 12, "", fontsize=10, color="Black")
