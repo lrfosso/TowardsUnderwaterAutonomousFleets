@@ -61,6 +61,9 @@ class BluerovPubSubNode(Node):
         self.make_file = 0
         self.mpc_killer = 0
         self.last_time = 0
+        self.real_x2 = 0
+        self.real_y2 = 0
+        self.real_z2 = 0
         self.x2_to_mpc = 0
         self.y2_to_mpc = 0
         self.z2_to_mpc = 0
@@ -250,23 +253,29 @@ class BluerovPubSubNode(Node):
             if(not self.make_file):
                 with open((str('csv_data/'+self.dt_string) + self.filename_data+'--rov{}.csv'.format(str(self.main_id))), 'w') as f:
                     writer = csv.writer(f)
-                    writer.writerow(['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test', 'x2', 'y2', 'z2', 'time'])
+                    writer.writerow(['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test', 'x2', 'y2', 'z2', 'real_x2', 'real_y2', 'real_z2', 'time'])
                     self.start_time = time.time()
                     self.make_file = 1
 
             with open((str('csv_data/'+self.dt_string) + self.filename_data+'--rov{}.csv'.format(str(self.main_id))), 'a') as f:
                 writer = csv.writer(f)
-                writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test]+[self.x2_to_mpc, self.y2_to_mpc, self.z2_to_mpc]+[time.time()-self.start_time])
+                writer.writerow([self.mpc1.x_setp,self.mpc1.y_setp,self.mpc1.z_setp] + self.odometry_list + [self.sec,self.nanosec] + [self.angle2,self.angle3] + [self.control_mode,self.std_test] + [self.x2_to_mpc, self.y2_to_mpc, self.z2_to_mpc] + [self.real_x2, self.real_y2, self.real_z2] + [time.time()-self.start_time])
     
     def odometry_callback_2(self, msg):
         """Subscriber function for 2nd ROV odometry"""
-        if(randint(1, 2) == 1):
-            self.x2_to_mpc = msg.pose.pose.position.x
-            self.y2_to_mpc = msg.pose.pose.position.y
-            self.z2_to_mpc = msg.pose.pose.position.z
-            self.mpc1.x_2 = msg.pose.pose.position.x
-            self.mpc1.y_2 = msg.pose.pose.position.y
-            self.mpc1.z_2 = msg.pose.pose.position.z
+        #if(randint(1, 2) == 1): packetloss
+        #dist_x = gauss(0, 0.5)
+        #dist_y = gauss(0, 0.5)
+        #dist_z = gauss(0, 0.5)
+        self.x2_to_mpc = msg.pose.pose.position.x# + dist_x
+        self.y2_to_mpc = msg.pose.pose.position.y# + dist_y
+        self.z2_to_mpc = msg.pose.pose.position.z# + dist_z
+        self.mpc1.x_2 = msg.pose.pose.position.x # + dist_x
+        self.mpc1.y_2 = msg.pose.pose.position.y # + dist_y
+        self.mpc1.z_2 = msg.pose.pose.position.z # + dist_z
+        self.real_x2 = msg.pose.pose.position.x
+        self.real_y2 = msg.pose.pose.position.y
+        self.real_z2 = msg.pose.pose.position.z
         #self.last_time = current_time
         if(self.ready_signal_mpc):
             v1 = self.vector_between_rovs(self.x0[0], self.x0[1], self.x0[2], msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z)
