@@ -40,8 +40,9 @@ class SetpointPublisher(Node):
 
     def line(self,t):
         #Moves in a straight line in the x-axis
-        # [ 0.00000000e+00  1.33226763e-16  1.20000000e-02 -1.20000000e-04]
-        x = 1.33226763*10**(-16)*t+1.20000000*10**(-2)*t**2-1.20000000*10**(-4)*t**3
+        # [ 0.00000000e+00  1.33226763e-16  1.20000000e-02 -1.20000000e-04] 0.3
+        # [ 0.00000000e+00  0.00000000e+00  5.33333333e-03 -3.55555556e-05] 0.25
+        x = 5.33*10**(-3)*t**2-3.55*10**(-5)*t**3
         if(x>=15.0 or self.line_complete):
             x = 15.0
             self.line_complete = True
@@ -244,7 +245,7 @@ class SetpointPublisher(Node):
                 case 3:
                     current_time_std = self.t * self.timer_period #
                     msg.x, msg.y, msg.z = self.line(current_time_std)
-                    if(current_time_std > 100):
+                    if(current_time_std > 130):
                         self.std_test = 0
                         self.publisher_ready_next.publish(ready_next)
                 case 4:

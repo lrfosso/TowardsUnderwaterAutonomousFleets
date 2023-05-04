@@ -11,6 +11,7 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from std_msgs.msg import Int32
 from geometry_msgs.msg import Vector3
+from std_msgs.msg import Bool
 
 class SetpointPublisher(Node):
     
@@ -39,8 +40,9 @@ class SetpointPublisher(Node):
 
     def line(self,t):
         #Moves in a straight line in the x-axis
-        # [ 0.00000000e+00  1.33226763e-16  1.20000000e-02 -1.20000000e-04]
-        x = 1.33226763*10**(-16)*t+1.20000000*10**(-2)*t**2-1.20000000*10**(-4)*t**3
+        # [ 0.00000000e+00  1.33226763e-16  1.20000000e-02 -1.20000000e-04] 0.3
+        # [ 0.00000000e+00  0.00000000e+00  5.33333333e-03 -3.55555556e-05] 0.25
+        x = 5.33*10**(-3)*t**2-3.55*10**(-5)*t**3
         if(x>=15.0 or self.line_complete):
             x = 15.0
             self.line_complete = True
@@ -147,6 +149,8 @@ class SetpointPublisher(Node):
             "/std_test", #Topic
             self.std_test_callback, #function?
             10)
+        self.publisher_ready_next = self.create_publisher(Bool, "/ready_next_stdtest", 10)
+
     def control_mode_callback(self, msg):
         self.control_mode = msg.data
 
@@ -155,7 +159,7 @@ class SetpointPublisher(Node):
 
     def trajectory_callback(self, msg): # append waypoints to waypoint list
 
-        avg_speed = 0.3 # average speed in m/s, used to calculate time to each setpoint
+        avg_speed = 0.25 # average speed in m/s, used to calculate time to each setpoint
 
         if(len(self.wp_x) == 0): # if first waypoint, append and exit function
             self.wp_x.append(msg.x)
@@ -219,6 +223,8 @@ class SetpointPublisher(Node):
                         self.t = 0
                         self.reset_iteration_standard_test = self.std_test
                         self.line_complete = False
+            ready_next = Bool()
+            ready_next.data = True
             match self.std_test:
                 case 0:
                     msg.x = 0.0
@@ -226,16 +232,28 @@ class SetpointPublisher(Node):
                     msg.z = 5.0
                 case 1:
                     current_time_std = self.t * self.timer_period #
+                    if(current_time_std > 200):
+                        self.std_test = 0
+                        self.publisher_ready_next.publish(ready_next)
                     msg.x, msg.y, msg.z = self.sine_wave(current_time_std)
                 case 2:
                     current_time_std = self.t * self.timer_period #
+                    if(current_time_std > 400):
+                        self.std_test = 0
+                        self.publisher_ready_next.publish(ready_next)
                     msg.x, msg.y, msg.z = self.torus(current_time_std) 
                 case 3:
                     current_time_std = self.t * self.timer_period #
                     msg.x, msg.y, msg.z = self.line(current_time_std)
+                    if(current_time_std > 130):
+                        self.std_test = 0
+                        self.publisher_ready_next.publish(ready_next)
                 case 4:
                     current_time_std = self.t * self.timer_period #
                     msg.x, msg.y, msg.z = self.spiral(current_time_std)
+                    if(current_time_std > 250):
+                        self.std_test = 0
+                        self.publisher_ready_next.publish(ready_next)
             
     
             self.publisher_.publish(msg)
