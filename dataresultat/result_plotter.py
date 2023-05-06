@@ -7,10 +7,11 @@ from mpl_toolkits import mplot3d
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning) #ignore depriciation warning
 plt.rcParams.update({'font.size': 18})#plt font size
-main_dir = "packetloss_50"
+main_dir = "x05addedmass"
 dimensions = 1 #2 or 3
 plot = 1 # 1 circle 2 torus 3 line 4 spiral
-suptitle = 'Line (50% Packet Loss)'
+suptitle = 'Spiral (0.5 Added Mass)'
+figname = 'spiral_x05_added_mass'
 directories = os.listdir(main_dir)
 
 def interpolate_point(x, full_sec, values):
@@ -258,9 +259,9 @@ if(dimensions == 1):
 
     df_stats = []
     df_stat =  pd.DataFrame(columns=['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test','x2','y2','z2','time'])
-    for time in df_line[0]['time']:
+    for time in df_spiral[0]['time']:
         df_stat =  pd.DataFrame(columns=['x_ref','y_ref','z_ref','x','y','z','eta','e1','e2','e3','u','v','w','p','q','r','sec','nanosec','angle2','angle3','control_mode','std_test','x2','y2','z2','time'])
-        for df in df_line:
+        for df in df_spiral:
             df_closest = df.iloc[(df['time']-time).abs().argsort()[:1]]
             df_stat = df_stat.append(df_closest)
         df_stats.append(df_stat)
@@ -363,6 +364,7 @@ if(dimensions == 1):
                     #top=0.9,
                     #wspace=0.4,
                     hspace=0.25)
+    fig.set_size_inches(26.5,16)
     ax[0,0].plot(times, x_ref, 'black', label='Reference')
     ax[0,0].plot(times, x, 'royalblue', label='Median')
     ax[0,0].plot(times, x_worst_high, 'red', label='High')
@@ -465,4 +467,5 @@ if(dimensions == 1):
             purged_lines.append(lines[i])
     fig.legend(purged_lines, purged_labels,loc='upper left',ncol=4, bbox_to_anchor=(0.525,0.34))
     ## Distance to REF?
+    plt.savefig(figname+'.png', dpi=200,bbox_inches='tight')
     plt.show()
