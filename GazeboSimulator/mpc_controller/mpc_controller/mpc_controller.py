@@ -159,8 +159,7 @@ class BluerovPubSubNode(Node):
             self.angle_publisher2 = self.create_publisher(Float64, 'angle/from_{}_to_{}'.format(self.main_id, self.third_rov), 10) ## TO BE REMOVED AT A LATER STAGE
 
         self.main_odometry_subscriber #Prevent unused variable warning
-        cycle_time_publish = 0.05  # seconds
-        self.timer = self.create_timer(cycle_time_publish, self.publisher_callback)
+        self.timer = self.create_timer(self.cycle_time_publish, self.publisher_callback)
     def vector_between_rovs(self,x1,y1,z1,x2,y2,z2):
         """Gets xyz coords of ROVs as input. Returns the vector between them (- heave)"""
         x = (x2-x1)
