@@ -1,10 +1,13 @@
-import rclpy
-from rclpy.node import Node
+
+#Import Python modules and functions
 import PySimpleGUI as sg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import os
 
+# Import ROS2 libraries and tools
+import rclpy
+from rclpy.node import Node
 from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Vector3
@@ -16,24 +19,31 @@ from std_msgs.msg import String
 class GUI(Node):
 
     def __init__(self):
-        ###### INIT ROS2 ############################################################################
+        """
+        INIT ROS2
+        """
         super().__init__('GUI')
-        ###### INIT ROS2 PARAMETERS
+        
+        # Declare ROS2 parameters and extract them
         self.declare_parameter('fleet_quantity')
         self.declare_parameter('FOV_max')
         self.n_agents = self.get_parameter('fleet_quantity').get_parameter_value().integer_value
         self.FOV_limit = self.get_parameter('FOV_max').get_parameter_value().double_value
-        ###### INIT SUBSCRIBERS AND PUBLISHERS
+
+        # Create subscribers and publishers
         self.subscription = self.create_subscription(
             Odometry,
             '/bluerov2_pid/bluerov2/observer/nlo/odom_ned',
             self.ROV1_main_callback,
             10)
+        
         self.subscription = self.create_subscription(
                 Vector3,
                 '/ref',
                 self.ref_callback,
                 10)
+        
+        # If fleet quantity is bigger than 1
         if(self.n_agents > 1):
             self.subscription = self.create_subscription(
                 Odometry,
@@ -50,6 +60,8 @@ class GUI(Node):
                 '/bluerov3_mpc/angle/from_3_to_2',
                 self.angle_callback3to2,
                 10)
+            
+        # If fleet quantity is bigger than 2
         if(self.n_agents > 2):
             self.subscription = self.create_subscription(
                 Odometry,
@@ -78,13 +90,32 @@ class GUI(Node):
                 10)
 
         self.subscription  # prevent unused variable warning
-        self.publisher_1 = self.create_publisher(Vector3, '/trajectory_waypoints', 10)
-        self.publisher_control_mode = self.create_publisher(Int32, '/control_mode', 10)
-        self.publisher_standard_test = self.create_publisher(Int32, "/std_test", 10)
-        self.publisher_record = self.create_publisher(Bool, "/record_data", 10)
-        self.publisher_filename = self.create_publisher(String, "/filename_data", 10)
+        self.publisher_1 = self.create_publisher(
+            Vector3, 
+            '/trajectory_waypoints', 
+            10)
+        
+        self.publisher_control_mode = self.create_publisher(
+            Int32, 
+            '/control_mode', 
+            10)
+        
+        self.publisher_standard_test = self.create_publisher(
+            Int32, 
+            "/std_test", 
+            10)
+        
+        self.publisher_record = self.create_publisher(
+            Bool, 
+            "/record_data", 
+            10)
+        
+        self.publisher_filename = self.create_publisher(
+            String, 
+            "/filename_data", 
+            10)
 
-        ###### INIT PLOT ############################################################################
+        # Initiate Plot
         w, h = figsize = (10, 7)     # figure size
         self.fig, self.ax = plt.subplots(figsize=figsize)
         dpi = self.fig.get_dpi()
@@ -96,7 +127,8 @@ class GUI(Node):
         self.ax.set_ylabel('x', fontdict={'fontsize': 15})
         self.ax.set_facecolor("blue")
 
-        ###### INIT PYSIMPLEGUI ######################################################################
+        
+        # Initate PySimpleGUI
         self.setup_layout()
         self.window = sg.Window('ROV Simulator GUI', self.layout, finalize=True,size=(1800, 900), element_justification='center')
         ## Changing the color of the cursor in the input boxes
@@ -129,43 +161,60 @@ class GUI(Node):
 
 
     def ROV1_main_callback(self, msg):
-        """Callback from main odometry. Also main PySimpleGUI loop"""
-        ### get the position of the ROV
+        """
+        Callback from main odometry. Also main PySimpleGUI loop
+        """
+        # Get the position of the ROV
         self.odom1 = msg.pose.pose.position
         event, self.values = self.window.read(timeout=5)
-        if event in ('-EXIT-', None): # if user closes window or clicks cancel. Stop the program
+
+        # if user closes window or clicks cancel. Stop the program
+        if event in ('-EXIT-', None): 
             exit(69)
-        if event == '-SET_P-': # if user sets a new waypoint
+
+        # if user sets a new waypoint
+        if event == '-SET_P-': 
             self.publish_waypoint()
+
         if event == '-READ-':
             self.open_window()
+
         if event == '-SET_CUR-':
             self.set_ocean_current()
+
         if event == '-RESET_CUR-':
             os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 0, y:0, z:0'")
         
 
         if event == '-TEST1-':
             self.std_test.data = 1
+
         elif event == '-TEST2-':
             self.std_test.data = 2
+
         elif event == '-TEST3-':
             self.std_test.data = 3
+
         elif event == '-TEST4-':
             self.std_test.data = 4
+
         elif event == '-INITIALIZE-':
             self.std_test.data = 0
+
         self.publisher_standard_test.publish(self.std_test)
 
         useable_col = ('black',"Grey80")
         unuseable_col = ('black',"Blue4")
         mode = Int32()
+
         if True == self.values['-JOYSTICK-']:
             mode.data = 0
             self.JOY_mode(useable_col, unuseable_col)
+
         elif True == self.values['-TRAJECTORY-']:
             mode.data = 1
             self.TRAJECTORY_mode(useable_col, unuseable_col)
+
         else:
             mode.data = 2
             self.STANDARD_TEST_mode(useable_col, unuseable_col)
@@ -177,6 +226,7 @@ class GUI(Node):
                 self.window['-RECORD-'].update(text="Stop")
             else:
                 self.window['-RECORD-'].update(text="Start")
+
         self.publisher_record.publish(self.record)
         self.filename = String()
         self.filename.data = self.values['-FILENAME-']
@@ -187,22 +237,25 @@ class GUI(Node):
 
         self.reinitialize_plot()
 
-        ## plot the reference and final destination
+        ## Plot the reference and final destination
         self.ax.scatter(self.traj_reference[1], self.traj_reference[0], c='black', s=40, label='Reference', marker='x')
         self.ax.scatter(self.final_dest_y,self.final_dest_x ,c='black', s=40, label='Final dest.')
 
-        ## update the canvas with ROV1
+        ## Update the canvas with ROV1
         if self.values['-TRAJ1-'] == True:
             if(len(self.trajectory_log_1[0]) > 2000 and len(self.trajectory_log_1[0]) > 0):
                 self.trajectory_log_1[0].pop(0)
                 self.trajectory_log_1[1].pop(0)
             self.trajectory_log_1[0].append(self.odom1.x)
             self.trajectory_log_1[1].append(self.odom1.y)
+
         else:
             self.trajectory_log_1 = [[],[]]
+
         self.ax.scatter(self.odom1.y, self.odom1.x, c='blue', s=40, label='ROV 1')
         self.ax.plot(self.trajectory_log_1[1], self.trajectory_log_1[0], c='blue')
-        ## update the canvas with ROV2
+
+        ## Update the canvas with ROV2
         if self.n_agents > 1:
             if self.values['-TRAJ2-'] == True:
                 if(len(self.trajectory_log_2[0]) > 2000 and len(self.trajectory_log_2[0]) > 0):
@@ -210,11 +263,13 @@ class GUI(Node):
                     self.trajectory_log_2[1].pop(0)
                 self.trajectory_log_2[0].append(self.pos2[0])
                 self.trajectory_log_2[1].append(self.pos2[1])
+
             else:
                 self.trajectory_log_2 = [[],[]]
             self.ax.scatter(self.pos2[1], self.pos2[0], c='green', s=40, label='ROV 2')
             self.ax.plot(self.trajectory_log_2[1], self.trajectory_log_2[0], c='green')
-        ## update the canvas with ROV3
+
+        ## Update the canvas with ROV3
         if self.n_agents > 2:
             if self.values['-TRAJ3-'] == True:
                 if(len(self.trajectory_log_3[0]) > 2000 and len(self.trajectory_log_3[0]) > 0):
@@ -226,27 +281,34 @@ class GUI(Node):
                 self.trajectory_log_3 = [[],[]]
             self.ax.scatter(self.pos3[1], self.pos3[0], c='red', s=40, label='ROV 3')
             self.ax.plot(self.trajectory_log_3[1], self.trajectory_log_3[0], c='red')
+
         ## Update the canvas with the new plot
         self.update_xyz_GUI_indication()
         self.ax.legend()
         self.fig_agg.draw()
 
     def update_xyz_GUI_indication(self):
-        """Update the xyz values in the GUI"""
+        """
+        Update the xyz values in the GUI
+        """
         self.window['-X_visual-'].update("%.2f"%self.odom1.x)
         self.window['-Y_visual-'].update("%.2f"%self.odom1.y)
         self.window['-Z_visual-'].update("%.2f"%self.odom1.z)
+
         if(self.n_agents > 1):
             self.window['-X_visual2-'].update("%.2f"%self.pos2[0])
             self.window['-Y_visual2-'].update("%.2f"%self.pos2[1])
             self.window['-Z_visual2-'].update("%.2f"%self.pos2[2])
+
         if(self.n_agents > 2):
             self.window['-X_visual3-'].update("%.2f"%self.pos3[0])
             self.window['-Y_visual3-'].update("%.2f"%self.pos3[1])
             self.window['-Z_visual3-'].update("%.2f"%self.pos3[2])
 
     def reinitialize_plot(self):
-        """Setup the plot. Runs every iteration of the main loop"""
+        """
+        Setup the plot. Runs every iteration of the main loop
+        """
         self.ax.cla()
         self.ax.grid(True)
         self.ax.set(xlim=(-20, 20), ylim=(-20, 20))
@@ -256,7 +318,9 @@ class GUI(Node):
         self.ax.set_facecolor((0.1,0.9,1))
 
     def setup_layout(self):
-        """"Setup the layout of the GUI"""
+        """"
+        Setup the layout of the GUI
+        """
         background_col = "RoyalBlue4"
         text_col = "Grey93"
         clickable_backgr_col = "Grey93"
@@ -340,6 +404,7 @@ class GUI(Node):
             sg.Button('Exit', size=(25, 2), font=font, key='-EXIT-', button_color=('white', 'red'), pad=((0, 0), (10, 0)))
             ],
             ]
+        
         self.sec_col = [
             [sg.Canvas(size=self.size, key='-CANVAS-', background_color='white')],
             [sg.Text('Ocean current:', size=(15, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
@@ -372,6 +437,7 @@ class GUI(Node):
             ],
             
         ]
+
         sg.theme('DarkTanBlue')
         self.layout = [
             [sg.Column(self.first_col,background_color=background_col, element_justification='center'),
@@ -380,7 +446,9 @@ class GUI(Node):
         ]
 
     def publish_waypoint(self):
-        """Publish waypoint to the topic"""
+        """
+        Publish waypoint to the topic
+        """
         ## Checking if the waypoint coordinates are valid
         invalid = False
         try:
@@ -395,7 +463,7 @@ class GUI(Node):
             invalid = True
         ## Settnig the limits for the waypoint coordinates
 
-        
+
         if(invalid):
             sg.popup('Please enter a valid number for the waypoint coordinates!',background_color="yellow", text_color="black", font="Helvetica 14", title="Warning")
         else:
@@ -409,7 +477,10 @@ class GUI(Node):
         invalid = False
 
     def set_ocean_current(self):
-        """Set ocean current"""
+        """
+        Set ocean current
+        """
+
         ## Checking if the current coordinates are valid
         invalid = False
         try:
@@ -432,7 +503,9 @@ class GUI(Node):
         invalid = False
 
     def JOY_mode(self,useable_col, unuseable_col):
-        """Setting up GUI for joystick control mode"""
+        """
+        Setting up GUI for joystick control mode
+        """
         self.window['-TEST1-'].update(button_color = unuseable_col)
         self.window['-TEST2-'].update(button_color = unuseable_col)
         self.window['-TEST3-'].update(button_color = unuseable_col)
@@ -452,7 +525,9 @@ class GUI(Node):
         self.window['-Z-'].update(disabled=True)
 
     def TRAJECTORY_mode(self, useable_col, unuseable_col):
-        """Setting up GUI for trajectory control mode"""
+        """
+        Setting up GUI for trajectory control mode
+        """
         self.window['-TEST1-'].update(button_color = unuseable_col)
         self.window['-TEST2-'].update(button_color = unuseable_col)
         self.window['-TEST3-'].update(button_color = unuseable_col)
@@ -472,7 +547,9 @@ class GUI(Node):
         self.window['-Z-'].update(disabled=False)
 
     def STANDARD_TEST_mode(self, useable_col, unuseable_col):
-        """Setting up GUI for standard test control mode"""
+        """
+        Setting up GUI for standard test control mode
+        """
         self.window['-TEST1-'].update(button_color = useable_col)
         self.window['-TEST2-'].update(button_color = useable_col)
         self.window['-TEST3-'].update(button_color = useable_col)
@@ -492,19 +569,27 @@ class GUI(Node):
         self.window['-Z-'].update(disabled=True)
 
     def ROV2_odom_callback(self, msg):
-        """Callback function for odometry2 topic"""
+        """
+        Callback function for odometry2 topic
+        """
         self.pos2 = [msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z]
     
     def ROV3_odom_callback(self, msg):
-        """Callback function for odometry3 topic"""
+        """
+        Callback function for odometry3 topic
+        """
         self.pos3 = [msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z]
     
     def ref_callback(self, msg):
-        """Callback function for reference topic"""
+        """
+        Callback function for reference topic
+        """
         self.traj_reference = [msg.x, msg.y, msg.z]
     
     def angle_callback2to3(self, msg):
-        """Callback function for angle2to3 topic"""
+        """
+        Callback function for angle2to3 topic
+        """
         if(self.FOV_limit > msg.data):
             self.window['-ANGLE_23-'].update(background_color = '#0000B9', text_color="white")
         else:
@@ -512,7 +597,9 @@ class GUI(Node):
         self.window['-ANGLE_23-'].update("%.2f"%msg.data)
         
     def angle_callback2to4(self, msg):
-        """Callback function for angle3to2 topic"""
+        """
+        Callback function for angle3to2 topic
+        """
         if(self.FOV_limit > msg.data):
             self.window['-ANGLE_24-'].update(background_color = '#0000B9', text_color="white")
         else:
@@ -520,7 +607,9 @@ class GUI(Node):
         self.window['-ANGLE_24-'].update("%.2f"%msg.data)
 
     def angle_callback3to2(self, msg):
-        """Callback function for angle2to3 topic"""
+        """
+        Callback function for angle2to3 topic
+        """
         if(self.FOV_limit > msg.data):
             self.window['-ANGLE_32-'].update(background_color = '#0000B9', text_color="white")
         else:
@@ -528,7 +617,9 @@ class GUI(Node):
         self.window['-ANGLE_32-'].update("%.2f"%msg.data)
 
     def angle_callback3to4(self, msg):
-        """Callback function for angle3to4 topic"""
+        """
+        Callback function for angle3to4 topic
+        """
         if(self.FOV_limit > msg.data):
             self.window['-ANGLE_34-'].update(background_color = '#0000B9', text_color="white")
         else:
@@ -536,7 +627,9 @@ class GUI(Node):
         self.window['-ANGLE_34-'].update("%.2f"%msg.data)
     
     def angle_callback4to2(self, msg):
-        """Callback function for angle4to2 topic"""
+        """
+        Callback function for angle4to2 topic
+        """
         if(self.FOV_limit > msg.data):
             self.window['-ANGLE_42-'].update(background_color = '#0000B9', text_color="white")
         else:
@@ -544,7 +637,9 @@ class GUI(Node):
         self.window['-ANGLE_42-'].update("%.2f"%msg.data)
 
     def angle_callback4to3(self, msg):
-        """Callback function for angle4to3 topic"""
+        """
+        Callback function for angle4to3 topic
+        """
         if(self.FOV_limit > msg.data):
             self.window['-ANGLE_43-'].update(background_color = '#0000B9', text_color="white")
         else:
@@ -552,7 +647,9 @@ class GUI(Node):
         self.window['-ANGLE_43-'].update("%.2f"%msg.data)
 
     def open_window(self):
-        """Opens a new window with parameters"""
+        """
+        Opens a new window with parameters
+        """
         cwd = os.getcwd()
         params_path = cwd + "/src/mpc_controller/params/params.yaml"
 
