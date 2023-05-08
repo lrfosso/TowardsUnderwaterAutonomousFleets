@@ -1,3 +1,4 @@
+# Importing modules and functions
 from launch import LaunchDescription
 from launch_ros.actions import Node, ComposableNodeContainer
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
@@ -7,32 +8,35 @@ import os
 import sys
 import yaml
 
-#Setup of Launch
+# Setup of Launch
 def multi_launch(context, *args, **kwargs):
-    #multi_agent = int(LaunchConfiguration('multi_agent').perform(context))
-
-    #Getting the file mpc_controller/params/params.yaml
+    """
+    Setting up launch of multiple nodes
+    """
+    # Getting the file mpc_controller/params/params.yaml
     param_path = os.path.join(
-    get_package_share_directory('mpc_controller'),
-    'params',
-    'params.yaml'
+        get_package_share_directory('mpc_controller'),
+        'params',
+        'params.yaml'
     )
+
+    # Storing dictionary of parameters to a variable
     with open(param_path, 'r') as f:
         config = yaml.safe_load(f)
         param = config['/**']['ros_parameters']
 
-    multi_agent = param['multi_agent']
-    FOV_max = param['FOV_range_deg']
+    multi_agent = param['multi_agent']  # Quantity of fleet
+    FOV_max = param['FOV_range_deg']    # Hard constraint - Field of View
+    launch_list = []                    # Empty list used to store nodes for launch
 
-    #Creating a node for each ROV
-    launch_agents = []
+    # Creating mpc node for every rov in the fleet
     for agent_id in range(multi_agent):
         agent = Node(
             package='mpc_controller',
-            namespace='bluerov{}_mpc'.format(agent_id+2),
-            name='bluerov{}'.format(agent_id+2),
-            executable='bluerov_mpc',
-            output='screen' if (agent_id+2) == param['debug_rov'] else "log",
+            namespace='bluerov{}_mpc'.format(agent_id+2),   # Customize node name
+            name='bluerov{}'.format(agent_id+2),            # Node shown in list as : /bluerov{}_mpc/bluerov{}
+            executable='bluerov_mpc',                       # Node executable from setup.py
+            output='screen' if (agent_id+2) == param['debug_rov'] else "log", 
             parameters= [param,
             {
                 'main_id': agent_id+2,
@@ -40,31 +44,33 @@ def multi_launch(context, *args, **kwargs):
             }
             ]
         )
-        launch_agents.append(agent)
+        launch_list.append(agent)
 
     trajectory_node = Node(
        package='mpc_controller',
-       executable='setpoint',
+       executable='setpoint',       # Node executable name from setup.py
        output='log',
        parameters=[param]
     )
-    launch_agents.append(trajectory_node)
+    launch_list.append(trajectory_node)
     
     joystick_node = Node(
        package='joy_con',
-       executable='joy_con_node',
+       executable='joy_con_node',   # Node executable name from CMakeList
        output='log',
     )
-    launch_agents.append(joystick_node)
-    joy_node = Node(
+    launch_list.append(joystick_node)
+
+    joy_node = Node( # Package that is included with ROS2
        package='joy',
        executable='joy_node',
        output='log',
     )
-    launch_agents.append(joy_node)
-    gui_node = Node(
+    launch_list.append(joy_node)
+
+    gui_node = Node( # Graphical User Interface
         package='mpc_controller',
-        executable='GUI',
+        executable='GUI', # Node executable name from setup.py
         output='log',
         parameters=[
         {
@@ -73,13 +79,12 @@ def multi_launch(context, *args, **kwargs):
         }
         ]
     )
-    launch_agents.append(gui_node)
+    launch_list.append(gui_node)
 
-    return launch_agents
+    return launch_list
 
-#Launch
+#Launching nodes
 def generate_launch_description():
     return LaunchDescription([
-        #DeclareLaunchArgument('multi_agent', default_value='1'),
         OpaqueFunction(function=multi_launch)
     ])
