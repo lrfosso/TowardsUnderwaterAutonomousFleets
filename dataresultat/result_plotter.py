@@ -402,6 +402,7 @@ if(dimensions == 1):
     ax[2,0].fill_between(times, z_worst_low, z_90_low, alpha=0.2, color='red')
     ax[2,0].fill_between(times, z_90_high, z_90_low, alpha=0.2, color='orange')
     ax[2,0].set_ylabel('z [m]')
+    ax[2,0].set_xlabel('Time [s]')
     #ax[2,0].legend()
 
     ax[0,1].plot(times, angle2, 'royalblue', label='Angle')
@@ -467,5 +468,5 @@ if(dimensions == 1):
             purged_lines.append(lines[i])
     fig.legend(purged_lines, purged_labels,loc='upper left',ncol=4, bbox_to_anchor=(0.525,0.34))
     ## Distance to REF?
-    plt.savefig(figname+'.png', dpi=200,bbox_inches='tight')
+    plt.savefig(figname+'.pdf', format="pdf", bbox_inches='tight')
     plt.show()
