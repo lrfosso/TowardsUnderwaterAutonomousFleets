@@ -1,4 +1,4 @@
-
+### Simulator file, imports controller and model ###
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -16,24 +16,28 @@ import math
 
 
 def sine_wave(t):
+    """ Sine wave along the x axis, oscilllating in the z axis """
     z = 1*np.sin(np.pi*t/10)
     x = t/10
     y = 0
     return x,y,z 
 
 def vector_between_rovs(x1,y1,z1,x2,y2,z2):
+    """ Returns vector defined by two points """
     x = (x2-x1)
     y = (y2-y1)
     z = (z2-z1)
     return [x, y, z]
 
 def x_directional_vector_from_quaternion(q0, e1, e2, e3):
+    """ Returns the x-directional vector from quaternion orientation """
     x = 1-(2*e2**2+2*e3**2)
     y = 2*e1*e2+2*e3*q0
     z = 2*e1*e3-2*e2*q0
     return [x, y, z]
 
 def quarternion_reference_other_ROV(x2,y2,z2,x1,y1,z1,q0,e1,e2,e3):
+    """ Return """
             vector =  [float(x2-x1), float(y2-y1), float(z2-z1)]
             vector = vector / np.linalg.norm(vector)
             theta = np.arccos(np.dot([1, 0, 0], vector))
@@ -89,7 +93,7 @@ def trajectory_parameter_generation(x0,dx0,x1,dx1, t0, t1):
     return b
 #Takes in the parameters as a list, and time t, returns the setpoint at that given time.
 def trajectory_generation(a,t):
-
+    """ Returns the position of a cubic polynomial with parameters a at time t"""
     qt = a[0] + a[1]*t + a[2]*t**2 + a[3]*t**3
     return qt
 
@@ -271,8 +275,6 @@ for i in range(max_itr):
         mpc2.e_1_setp = 0
         mpc2.e_2_setp = 1
         mpc2.e_3_setp = 0
-    if i == 150:
-        print("Ye")
     if i == 200:
         mpc2.x_setp -= 7
         mpc2.y_setp += 7
