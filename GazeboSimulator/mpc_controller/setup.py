@@ -1,9 +1,20 @@
+"""
+_________________________________________________________________________________________________________
+Setting up the package so ROS 2 knows how it should be installed
+_________________________________________________________________________________________________________
+Resource:
+https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Creating-Your-First-ROS2-Package.html
+_________________________________________________________________________________________________________
+"""
+
+# Import modules
 import os
 from glob import glob
 from setuptools import setup
 
 package_name = 'mpc_controller'
 
+# Setting up package
 setup(
     name=package_name,
     version='0.0.0',
@@ -17,12 +28,12 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='rov',
-    maintainer_email='rov@todo.todo',
-    description='TODO: Package description',
+    maintainer='E2310',
+    maintainer_email='',
+    description='Bachelor thesis - https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets',
     license='TODO: License declaration',
     tests_require=['pytest'],
-    entry_points={
+    entry_points={ # Gives executable names to nodes
         'console_scripts': [
         'GUI = mpc_controller.GUI:main',
         'bluerov_mpc = mpc_controller.mpc_controller:main',

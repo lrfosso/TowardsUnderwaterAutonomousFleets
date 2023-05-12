@@ -3,8 +3,8 @@
 <package format="3">
   <name>mpc_controller</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="rov@todo.todo">rov</maintainer>
+  <description>Package used to test multiple agents in simulation with MPC - Bachelor thesis - https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets</description>
+  <maintainer email="E2310@todo.todo">E2310</maintainer>
   <license>TODO: License declaration</license>
 
   <test_depend>ament_copyright</test_depend>
