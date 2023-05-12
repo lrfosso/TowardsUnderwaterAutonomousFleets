@@ -1,3 +1,5 @@
+######## File that contains the implementation of the model in do-mpc ########
+
 import numpy as np
 from casadi import *
 
