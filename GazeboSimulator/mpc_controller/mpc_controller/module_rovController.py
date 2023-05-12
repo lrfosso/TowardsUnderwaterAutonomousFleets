@@ -1,5 +1,9 @@
-#### File for the controller implementation in do-mpc ####
-### This files contains only the controller class, and is imported to another file, that contains the node ###
+"""
+_______________________________________________________________________________
+File for the controller implementation in do-mpc 
+This files contains only the controller class, and is imported to another file, that contains the node
+_______________________________________________________________________________
+"""
 import do_mpc
 import numpy as np
 
