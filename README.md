@@ -1,10 +1,8 @@
 # Decentralized Model Predictive Control for Increased Autonomy in Fleets of ROVs
 
-## Denne må fylles ut etterhvert
+## Description
 
-This is the repository connected to a Bachelors thesis from NTNU in 2023.
-
-The Python toolbox [do-mpc](https://www.do-mpc.com/en/latest/) was used for the MPC controller.
+This is the repository connected to a Bachelors thesis from NTNU in 2023. It contasins the code for implementation of a decentralized model predictive control architecture to be implemented in a set of [BlueROV2 Heavys](https://bluerobotics.com/store/rov/bluerov2-upgrade-kits/brov2-heavy-retrofit/).
 
 ### REQUIREMENTS
 
@@ -30,7 +28,7 @@ To run this simulator all [REQUIREMENTS](https://github.com/lrfosso/TowardsUnder
 
 Steps to run this simulator from terminal:
 
-1. Navigate to the **\bluerov2_garden** workspace were the **\src** folder is located
+1. Navigate to the **/bluerov2_garden** workspace were the **/src** folder is located
 
 2. Source ROS 2 install: **source /opt/ros/humble/setup.bash**
 
@@ -40,21 +38,21 @@ Steps to run this simulator from terminal:
 
 5. Navigate to the [params.yaml](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/blob/main/GazeboSimulator/mpc_controller/params/params.yaml) file and set **n_multi_agent** parameter to the amount of agent you wish to spawn into the simulator.
 
-6. The simulator is now ready to launch. It can be launched with one or multiple agents_
+6.  Run command: **python3 mpc_controller.py**
 
-   - Single-agent launch:
-     - Run command: **ros2 launch bluerov_launch bluerov_launch.py**
-
-   -  Multi-agent launch:
-      - Run command: **ros2 launch bluerov_launch bluerov_launch.py multi_agent:=4** (***NB***: The last number is the number of agents spawned and has to match the amount in [params.yaml](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/blob/main/GazeboSimulator/mpc_controller/params/params.yaml) file)
-
-7. Run command: **python3 mpc_controller.py**
+7. Run command: **ros2 launch bluerov_launch bluerov_launch.py**
 
 Gazebo Garden and a GUI should have launched at this point. Start the simulation in Gazebo Garden with the play button in the lower left corner.
 
 #### Python simulator(Do-mpc simulator)
 
 Contains the code made by the group connected to the do-mpc simulator.
+To run this simulator only [do-mpc](https://www.do-mpc.com/en/latest/) is required:
+1. Run command: **python3 rovSimulator.py**
+
+#### dataresultat
+
+Contains the results from the simulation tests conducted during the project.
 
 
 #### dataresultat
