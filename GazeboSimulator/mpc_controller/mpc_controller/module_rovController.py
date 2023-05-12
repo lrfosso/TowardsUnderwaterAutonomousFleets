@@ -35,15 +35,7 @@ class MyController():
         self.x_3 = 0 
         self.y_3 = 0
         self.z_3 = 0
-#        self.x_4 = 0 
-#        self.y_4 = 0
-#        self.z_4 = 0
-#        self.x_5 = 0 
-#        self.y_5 = 0
-#        self.z_5 = 0
-#        self.x_6 = 0 
-#        self.y_6 = 0
-#        self.z_6 = 0
+
         self.mpc.set_tvp_fun(self.tvp_fun)
         tvp_template = self.mpc.get_tvp_template()
         ### Define the cost function
@@ -86,39 +78,7 @@ class MyController():
                 lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2 +
                                  _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
                                  _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
-#            case 4: #Four agents
-#                mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
-#                12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
-#                + 50*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
-#                +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
-#                +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
-#                +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2
-#                ))
-#                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2 +
-#                                 _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
-#                                 _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
-#            case 5: #Five agents
-#                mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
-#                12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
-#                + 50*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
-#                +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
-#                +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
-#                +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2
-#                ))
-#                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2 +
-#                                 _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
-#                                 _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
-#            case 6: #Six agents
-#                mterm = (25*(((1*(_tvp_rov1['x_sp']-_x_rov1['x'])**2+ 1*(_tvp_rov1['y_sp']-_x_rov1['y'])**2)-radius_setp**2)**2 +
-#                12*(_x_rov1['z']-_tvp_rov1['z_sp'])**2)
-#                + 50*((((_x_rov1['q_0']*_tvp_rov1['q_0_sp']+_x_rov1['e_1'] * _tvp_rov1['e_1_sp']+_x_rov1['e_2']* _tvp_rov1['e_2_sp']+_x_rov1['e_3']* _tvp_rov1['e_3_sp'])**2-1)**2 )
-#                +(-_tvp_rov1['e_1_sp']*_x_rov1['q_0']+_tvp_rov1['q_0_sp']*_x_rov1['e_1']-_tvp_rov1['e_3_sp']*_x_rov1['e_2']+_tvp_rov1['e_2_sp']*_x_rov1['e_3'])**2
-#                +(-_tvp_rov1['e_2_sp']*_x_rov1['q_0']+_tvp_rov1['e_3_sp']*_x_rov1['e_1']+_tvp_rov1['q_0_sp']*_x_rov1['e_2']-_tvp_rov1['e_1_sp']*_x_rov1['e_3'])**2
-#                +(-_tvp_rov1['e_3_sp']*_x_rov1['q_0']-_tvp_rov1['e_2_sp']*_x_rov1['e_1']+_tvp_rov1['e_1_sp']*_x_rov1['e_2']+_tvp_rov1['q_0_sp']*_x_rov1['e_3'])**2
-#                ))
-#                lterm = mterm + (_u_rov1['u_1']**2+_u_rov1['u_2']**2+_u_rov1['u_3']**2 +
-#                                 _u_rov1['u_4']**2+_u_rov1['u_5']**2 + _u_rov1['u_6']**2+
-#                                 _u_rov1['u_7']**2+_u_rov1['u_8']**2)*1
+
         ## Pentalty term for the thrusters
         self.mpc.set_rterm(
                 u_1 = 0.1,
@@ -176,39 +136,6 @@ class MyController():
                     +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_3']-_x_rov1['z'])))
                     , ub=0, soft_constraint=False
                     )
-#        if(n_multi_agent>3):
-#            self.mpc.set_nl_cons("Distance4", 
-#                (distance_rovs**2-((_tvp_rov1['x_4']-_x_rov1['x'])**2+(_tvp_rov1['y_4']-_x_rov1['y'])**2+(_tvp_rov1['z_4']-_x_rov1['z'])**2)), 
-#                ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
-#            if(FOV_constraint):
-#                self.mpc.set_nl_cons("FOV3",
-#                    2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_4']-_x_rov1['x'])
-#                    +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_4']-_x_rov1['y'])
-#                    +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_4']-_x_rov1['z'])))
-#                    , ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2]
-#                    )
-#        if(n_multi_agent>4):
-#            self.mpc.set_nl_cons("Distance5", 
-#                (distance_rovs**2-((_tvp_rov1['x_5']-_x_rov1['x'])**2+(_tvp_rov1['y_5']-_x_rov1['y'])**2+(_tvp_rov1['z_5']-_x_rov1['z'])**2)), 
-#                ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
-#            if(FOV_constraint):
-#                self.mpc.set_nl_cons("FOV4",
-#                    2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_5']-_x_rov1['x'])
-#                    +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_5']-_x_rov1['y'])
-#                    +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_5']-_x_rov1['z'])))
-#                    , ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2]
-#                    )
-#        if(n_multi_agent>5):
-#            self.mpc.set_nl_cons("Distance6", 
-#                (distance_rovs**2-((_tvp_rov1['x_6']-_x_rov1['x'])**2+(_tvp_rov1['y_6']-_x_rov1['y'])**2+(_tvp_rov1['z_6']-_x_rov1['z'])**2)), 
-#                ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
-#            if(FOV_constraint):
-#                self.mpc.set_nl_cons("FOV5",
-#                    2*(np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_6']-_x_rov1['x'])
-#                    +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_6']-_x_rov1['y'])
-#                    +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_6']-_x_rov1['z'])))
-#                    , ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2]
-#                    )
   
         # Boundary constraints, set to -10 and + 10
         self.mpc.bounds['lower', '_u', 'u_1'] = - 10
@@ -231,8 +158,6 @@ class MyController():
         self.mpc.bounds['upper', '_u', 'u_8'] =  10
         self.mpc.setup()
 
-        
-
     def tvp_fun(self, t_now):
         """Function for setting the time varying parameters"""
         tvp_template = self.mpc.get_tvp_template()
@@ -250,16 +175,5 @@ class MyController():
             tvp_template['_tvp',k,'x_3'] =  self.x_3
             tvp_template['_tvp',k,'y_3'] =  self.y_3
             tvp_template['_tvp',k,'z_3'] =  self.z_3
-#            tvp_template['_tvp',k,'x_4'] =  self.x_4
-#            tvp_template['_tvp',k,'y_4'] =  self.y_4
-#            tvp_template['_tvp',k,'z_4'] =  self.z_4
-#            tvp_template['_tvp',k,'x_5'] =  self.x_5
-#            tvp_template['_tvp',k,'y_5'] =  self.y_5
-#            tvp_template['_tvp',k,'z_5'] =  self.z_5
-#            tvp_template['_tvp',k,'x_6'] =  self.x_6
-#            tvp_template['_tvp',k,'y_6'] =  self.y_6
-#            tvp_template['_tvp',k,'z_6'] =  self.z_6
-
-
             
         return tvp_template

@@ -4,6 +4,7 @@
 
 # example command:
 # ros2 topic pub /trajectory_waypoints --once geometry_msgs/msg/Vector3 {'x: 2.0, y: 4.0, z: 2.0'}
+
 import rclpy
 from numpy import sin,cos, pi, array, linalg, sqrt
 from rclpy.node import Node
@@ -15,9 +16,9 @@ from std_msgs.msg import Bool
 
 class SetpointPublisher(Node):
     
-    def sine_wave(self,t):
+    def oscillating_circle(self,t):
         """
-        Creates a sine wave in the z-axis, moves in a circle in the xy-plane 
+        Path moving in a oscillating_circle
         """
         z = 1*sin(pi*t/25)+5
         x = 5*cos(pi*t/100) - 5
@@ -26,7 +27,7 @@ class SetpointPublisher(Node):
 
     def torus(self,t):
         """
-        Moves in a spiral shape around a torus of diameter 5
+        Path moving in a torus
         """
         r_big = 7
         r = 2
@@ -35,19 +36,12 @@ class SetpointPublisher(Node):
         x = r_big*cos(pi*t/phi)+r*cos(pi*t/theta)*cos(pi*t/phi) - (r_big+r)
         y = r_big*sin(pi*t/phi)+r*cos(pi*t/theta)*sin(pi*t/phi)
         z = r*sin(pi*t/theta) +5
-
-        #z = 1*sin(pi*t/25)+2
-        #x = 5*cos(t/100) + 1*cos(pi*t/25)
-        #y = 5*sin(t/100) + 1*sin(pi*t/25)
-
         return x,y,z 
 
     def line(self,t):
         """
-        Moves in a straight line in the x-axis
+        Path moving in the x-axis
         """
-        # [ 0.00000000e+00  1.33226763e-16  1.20000000e-02 -1.20000000e-04] 0.3
-        # [ 0.00000000e+00  0.00000000e+00  5.33333333e-03 -3.55555556e-05] 0.25
         x = 5.33*10**(-3)*t**2-3.55*10**(-5)*t**3
         if(x>=15.0 or self.line_complete):
             x = 15.0
@@ -57,18 +51,13 @@ class SetpointPublisher(Node):
         return x,y,z
 
     def spiral(self,t):
+        """
+        Path spiraling in the xy-plane
+        """
         x = (4-0.015*t)*cos(pi*(t)/(100-0.3*(t))) - 4
         y = (4-0.015*t)*sin(pi*(t)/(100-0.3*(t)))
         z = 5.0
         return x,y,z
-
-
-    def square(self, t):
-        x = 0.0
-        y = 0.0
-        z = 5.0
-        return x,y,z
-
     
     def cubic_trajectory_parameter_generation(self,x0,dx0,x1,dx1, t0, t1):
         """
@@ -216,8 +205,6 @@ class SetpointPublisher(Node):
         current_time = self.i * self.timer_period #
         msg = Vector3()
         if (self.control_mode == 1):
-		    #msg.x,msg.y,msg.z = self.sine_wave(self.i)
-            
             print(self.wp_t)
             
             # Checks if waypoint lists is empty, Skip if it is
@@ -275,7 +262,7 @@ class SetpointPublisher(Node):
                     if(current_time_std > 200):
                         self.std_test = 0
                         self.publisher_ready_next.publish(ready_next)
-                    msg.x, msg.y, msg.z = self.sine_wave(current_time_std)
+                    msg.x, msg.y, msg.z = self.oscillating_circle(current_time_std)
                 case 2:
                     current_time_std = self.t * self.timer_period #
                     if(current_time_std > 400):
@@ -312,9 +299,7 @@ def main(args=None):
 
     rclpy.spin(setpoint_publisher)
 
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
+
     setpoint_publisher.destroy_node()
     rclpy.shutdown()
 

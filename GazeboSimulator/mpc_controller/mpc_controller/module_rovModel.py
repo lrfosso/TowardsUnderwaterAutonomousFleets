@@ -14,7 +14,6 @@ class MyROVModel():
 
         m = 11.5                    # Kg
         W = m*9.81                   # m*g, Newton
-        #W = 114.8                   # Newton neutral buoyancy
         B = 114.8                   # buoyancy, Newton
         r_b = np.array([[0],        # m centre of buoyancy 
                         [0],
@@ -99,8 +98,6 @@ class MyROVModel():
         u_6 = self.model.set_variable('_u', 'u_6')
         u_7 = self.model.set_variable('_u', 'u_7')
         u_8 = self.model.set_variable('_u', 'u_8')
-       #u5 og u8 hadde ogsaa minusfortegn 
-        
 
         #Time-varying parameters for setpoints
         x_sp = self.model.set_variable('_tvp', 'x_sp')
@@ -118,17 +115,6 @@ class MyROVModel():
         x_3 = self.model.set_variable('_tvp', 'x_3') 
         y_3 = self.model.set_variable('_tvp', 'y_3') 
         z_3 = self.model.set_variable('_tvp', 'z_3')  
-#        x_4 = self.model.set_variable('_tvp', 'x_4') 
-#        y_4 = self.model.set_variable('_tvp', 'y_4') 
-#        z_4 = self.model.set_variable('_tvp', 'z_4')    
-#        x_5 = self.model.set_variable('_tvp', 'x_5') 
-#        y_5 = self.model.set_variable('_tvp', 'y_5') 
-#        z_5 = self.model.set_variable('_tvp', 'z_5')
-#        x_6 = self.model.set_variable('_tvp', 'x_6') 
-#        y_6 = self.model.set_variable('_tvp', 'y_6') 
-#        z_6 = self.model.set_variable('_tvp', 'z_6')   
-        
-        
         
         #Quaternion rotation matrix translating change in body frame to NED
         self.model.set_rhs('x',(1 - 2*(e_2**2 + e_3**2))*u + 2*(e_1*e_2 - e_3*q_0)*v + 2*(e_1*e_3 + e_2*q_0)*w )
@@ -151,32 +137,15 @@ class MyROVModel():
         self.model.set_rhs('v', v_dot)
         self.model.set_rhs('w', w_dot)
         
-        
-        
-        
         #### MATRICES ############### (multiplied out)
         
         #hydrostatics
-        #g_1 = (B-W)*(2*e_1*e_3 - 2*e_2*q_0)
-        #g_2 = (B-W)*(2*e_2*e_3 - 2*e_1*q_0)
-        #g_3 = (W-B)*(2*e_1**2 + 2*e_2**2 -1)
-        #g_4 = z_g*W*(2*e_2*e_3 + 2*e_1*q_0)
-        #g_5 = z_g*W*(2*e_1*e_3 - 2*e_2*q_0)
-        #g_6 = 0
         g_1 = (B-W)*(2*e_1*e_3 - 2*e_2*q_0)
         g_2 = (B-W)*(2*e_2*e_3 + 2*e_1*q_0)
         g_3 = -(B-W)*(2*e_1**2 + 2*e_2**2 -1)
         g_4 = W*z_g*(2*e_2*e_3 + 2*e_1*q_0)
         g_5 = -W*z_g*(2*e_1*e_3 - 2*e_2*q_0)
         g_6 = 0
-        
-        #tau forces
-        #tau_1 = (0.707*u_1 + 0.707*u_2-0.707*u_3-0.707*u_4)
-        #tau_2 =(-0.707*u_1 + 0.707*u_2-0.707*u_3 + 0.707*u_4)
-        #tau_3 =( u_5 + u_6 + u_7 + u_8)
-        #tau_4 =(0.06*u_1 - 0.06*u_2 + 0.06*u_3 - 0.06*u_4 -0.218*u_5 - 0.218*u_6 + 0.218*u_7 + 0.218*u_8)
-        #tau_5 =(0.06*u_1 + 0.06*u_2 - 0.06*u_3 - 0.06*u_4 + 0.120*u_5 - 0.120*u_6 + 0.120*u_7 - 0.120*u_8)
-        #tau_6 =(-0.1888*u_1 + 0.1888*u_2 + 0.1888*u_3 - 0.1888*u_4)
         
         #Tau matrix, inputs
         tau_1 = (0.707*u_1 + 0.707*u_2-0.707*u_3-0.707*u_4) #x
@@ -195,12 +164,6 @@ class MyROVModel():
         M_rb_6 = I_z*r_dot
         
         #C_rb Rigid-body coriolis and centripital matrix
-        #C_rb_1 = m*w*q
-        #C_rb_2 =  -m*w*p
-        #C_rb_3 =  m*(v*p - u*q)
-        #C_rb_4 =  m*(w*v - v*w) +I_z*r*q - I_y*q*r
-        #C_rb_5 = -m*(w*u - u*w) - I_z*r*p + I_x*p*r
-        #C_rb_6 = m*(v*u - u*v) + I_y*q*p -I_x*p*q
         C_rb_1 = m*w*q + (m*p*z_g-m*v)*r
         C_rb_2 = -m*w*p + (m*u + m*q*z_g)*r
         C_rb_3 =  m*((v - p*z_g)*p + (-u - q*z_g)*q)
@@ -218,12 +181,6 @@ class MyROVModel():
         M_a_6 = -N_rdot*r_dot
         
         #C_a Coriolis and centripital matrix
-        #C_a_1 = Z_wdot*w*q
-        #C_a_2 = -Z_wdot*w*p - X_udot*u*r
-        #C_a_3 = -Y_vdot*v*p + X_udot*u*q
-        #C_a_4 = -Z_wdot*w*v + Y_vdot*v*w - N_rdot*r*q + M_qdot*q*r
-        #C_a_5 = Z_wdot*w*u - X_udot*u*w + N_rdot*r*p - K_pdot*p*r
-        #C_a_6 = - Y_vdot*v*u + X_udot*u*v - M_qdot*q*p + K_pdot*p*q
         C_a_1 = -Z_wdot*w*q + Y_vdot*v*r
         C_a_2 = Z_wdot*w*p - X_udot*u*r
         C_a_3 = -Y_vdot*v*p + X_udot*u*q
@@ -231,8 +188,7 @@ class MyROVModel():
         C_a_5 = Z_wdot*w*u - X_udot*u*w + N_rdot*r*p - K_pdot*p*r
         C_a_6 = - Y_vdot*v*u + X_udot*u*v - M_qdot*q*p + K_pdot*p*q
         
-        
-        
+
         #D_l Linear damping matrix, skin friction
         D_l_1 = -X_u*u 
         D_l_2 = -Y_v*v
@@ -251,7 +207,6 @@ class MyROVModel():
         
         
         ################# EQUATIONS OF MOTION ##################
-
         f_1 = M_rb_1 + M_a_1 + C_rb_1 + C_a_1 + D_l_1 + D_nl_1 + g_1 - tau_1
         f_2 = M_rb_2 + M_a_2 + C_rb_2 + C_a_2 + D_l_2 + D_nl_2 + g_2 - tau_2
         f_3 = M_rb_3 + M_a_3 + C_rb_3 + C_a_3 + D_l_3 + D_nl_3 + g_3 - tau_3
