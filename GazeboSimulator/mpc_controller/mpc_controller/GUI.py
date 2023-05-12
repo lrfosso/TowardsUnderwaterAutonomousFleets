@@ -372,7 +372,7 @@ class GUI(Node):
         self.ax.cla()
         self.ax.grid(True)
         self.ax.set(xlim=(-20, 20), ylim=(-20, 20))
-        self.ax.set_title('Birds eye view of sea', fontdict={'fontsize': 20})
+        self.ax.set_title("Bird's-eye view", fontdict={'fontsize': 20})
         self.ax.set_xlabel('y', fontdict={'fontsize': 15})
         self.ax.set_ylabel('x', fontdict={'fontsize': 15})
         self.ax.set_facecolor((0.1,0.9,1))
@@ -420,10 +420,10 @@ class GUI(Node):
             [sg.Button('Set position', size=(38, 1), font=font, key='-SET_P-', button_color=('black',button_col))],
             [sg.Text('', background_color=background_col)],
             [sg.Text('Standard test', size=(50, 1), justification='center', font=(font, 12, "bold"),text_color=text_col, background_color=unclickable_col)],
-            [sg.Button('Circle [1]', size=(20, 1), font=font, key='-STD_TEST_1-', button_color=('black', button_col)),
-            sg.Button('Torus [2]', size=(20, 1), font=font, key='-STD_TEST_2-', button_color=('black', button_col))],
-            [sg.Button('Line [3]', size=(20, 1), font=font, key='-STD_TEST_3-', button_color=('black', button_col)),
-            sg.Button('Spiral [4]', size=(20, 1), font=font, key='-STD_TEST_4-', button_color=('black', button_col))],
+            [sg.Button('Circle', size=(20, 1), font=font, key='-STD_TEST_1-', button_color=('black', button_col)),
+            sg.Button('Torus', size=(20, 1), font=font, key='-STD_TEST_2-', button_color=('black', button_col))],
+            [sg.Button('Line', size=(20, 1), font=font, key='-STD_TEST_3-', button_color=('black', button_col)),
+            sg.Button('Spiral', size=(20, 1), font=font, key='-STD_TEST_4-', button_color=('black', button_col))],
             [sg.Button('Initialize position', size=(20, 1), font=font, key='-INITIALIZE-', button_color=('black', button_col)),
             sg.Button('Test sequence', size=(20, 1), font=font, key='-STD_TEST_SEQUENCE-', button_color=('black', button_col))],
             [sg.Text('', background_color=background_col)],
