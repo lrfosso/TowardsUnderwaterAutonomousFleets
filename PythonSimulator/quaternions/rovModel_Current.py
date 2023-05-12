@@ -1,3 +1,5 @@
+### This file contains the ROV model, using the relative velocity vector to account for currents ###
+
 import numpy as np
 from casadi import *
 
@@ -350,9 +352,9 @@ class MyROVModel():
         
         ################# EQUATIONS OF MOTION ##################
         added_term = (M_rb+M_a)@np.concatenate((skew(nu_vec[3:])@nu_c_vec[:3],zerovec),axis=0)
-        print(added_term)
+        #print(added_term)
         E_Q_M = added_term + (M_rb + M_a)@nu_dot_vec + (C_rb + C_a)@(nu_vec-nu_c_vec) + (D_l)@(nu_vec - nu_c_vec)
-
+        # Have to append some terms, as numpy does not always work perfectly with casadi symbols
         f_1 = E_Q_M[0,:] + D_nl_1 + g_1 - tau_1
         f_2 = E_Q_M[1,:] + D_nl_2 + g_2 - tau_2
         f_3 = E_Q_M[2,:] + D_nl_3 + g_3 - tau_3
