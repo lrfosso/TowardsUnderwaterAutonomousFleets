@@ -1,3 +1,6 @@
+### This file contains the node, that imports the model and the controller###
+### It subscribes to the odometry, reference, clock, and other topics that come from the GUI ###
+### It publishes to thrusters ###
 # Creating a path to modules
 import sys
 import os
@@ -310,7 +313,8 @@ class BluerovPubSubNode(Node):
             now = datetime.now()
             self.dt_string = now.strftime("Date--%d--%m--%y--Time--%H--%M--%S--")
             self.make_file = 0
-
+            
+        #Writes relevant information to the CSV
         if(self.record_data and self.ready_signal_mpc):
             if(not self.make_file):
                 with open(
@@ -331,7 +335,7 @@ class BluerovPubSubNode(Node):
                          )
                     self.start_time = time.time()
                     self.make_file = 1
-
+            
             with open(
                 (str('csv_data/'+self.dt_string) + self.filename_data+'--rov{}.csv'.format(str(self.main_id))), 'a') as f:
                 writer = csv.writer(f)
