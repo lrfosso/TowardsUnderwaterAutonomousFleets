@@ -1,3 +1,9 @@
+"""
+_____________________________________________________________
+Controller for Squared Error
+_____________________________________________________________
+"""
+
 import do_mpc
 import numpy as np
 
@@ -121,7 +127,7 @@ class MyController():
                 u_8 = 0.1
                 )
         self.mpc.set_objective(mterm=mterm,lterm=lterm)
-
+        
         #                        2   3  
         penalty_term_distance = [70, 120]
         penalty_term_FOV =      [70, 70 ]
