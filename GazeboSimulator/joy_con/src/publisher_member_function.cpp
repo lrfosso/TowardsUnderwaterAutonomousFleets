@@ -1,6 +1,8 @@
+//-----------------------------------------------------------------------------------------------------
 // This node subscribes to the /joy topic to get info about joystick inputs, and translates these into
-// changes in the setpoint, and publishes these to /ref. Also subscribes to the /control_mode topic, so it only alters when control_mode
-// is in the correct mode.
+// changes in the setpoint, and publishes these to /ref. 
+//Also subscribes to the /control_mode topic, so it only alters /ref when control_mode == 0
+//-----------------------------------------------------------------------------------------------------
 
 
 #include <chrono>
