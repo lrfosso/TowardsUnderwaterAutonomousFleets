@@ -1,16 +1,7 @@
-// Copyright 2016 Open Source Robotics Foundation, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This node subscribes to the /joy topic to get info about joystick inputs, and translates these into
+// changes in the setpoint, and publishes these to /ref. Also subscribes to the /control_mode topic, so it only alters when control_mode
+// is in the correct mode.
+
 
 #include <chrono>
 #include <functional>
@@ -26,11 +17,12 @@ using namespace std::chrono_literals;
 
 /* This example creates a subclass of Node and uses std::bind() to register a
  * member function as a callback from the timer. */
-double x, y, z;
-int control_mode;
+double x, y, z; // setpoints
+int control_mode; //which control mode is activated in GUI
 class MinimalPublisher : public rclcpp::Node
 {
 public:
+// Creates publishers and subscribers
   MinimalPublisher()
   : Node("minimal_publisher"), count_(0)
   {
@@ -47,6 +39,7 @@ public:
 
 private:
   void timer_callback()
+  // if control_mode is 0, publish coordinates
   { if(control_mode == 0){
     auto message = geometry_msgs::msg::Vector3();
     message.x = x;
@@ -62,6 +55,8 @@ private:
   size_t count_;
 
   void topic_callback(const sensor_msgs::msg::Joy & msg) const
+  // callback function for /joy topic
+  // if control_mode is 0, adjust setpoint, from joystick input
     { if(control_mode == 0){
       x += msg.axes[1]/10;
       y += -msg.axes[0]/10;
@@ -72,6 +67,7 @@ private:
 
   void control_mode_callback(const std_msgs::msg::Int32 & msg) const
     {
+    // callback function for /control_mode topic
       control_mode = msg.data;
       RCLCPP_INFO(this->get_logger(), "I heard: '%s'", std::to_string(msg.data).c_str());
     }
