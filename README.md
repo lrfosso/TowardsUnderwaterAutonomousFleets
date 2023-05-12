@@ -6,7 +6,7 @@ The Python toolbox [do-mpc](https://www.do-mpc.com/en/latest/) was used for the 
 
 ### REQUIREMENTS
 To be able to run all code in this reposetory these programs are needed:
-- Ubuntu 22.04 LTS (Jammy Jellyfish): link
+- Ubuntu 22.04.2 LTS (Jammy Jellyfish): https://releases.ubuntu.com/jammy/
 - ROS 2: link
 - Gazebo Garden: link
 - do-mpc: link
