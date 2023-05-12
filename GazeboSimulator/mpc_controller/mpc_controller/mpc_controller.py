@@ -37,7 +37,7 @@ class BluerovPubSubNode(Node):
 
         # Node launch parameters being declared
         self.declare_parameter('main_id')
-        self.declare_parameter('fleet_quantity')
+        self.declare_parameter('n_multi_agent')
         self.declare_parameter('FOV_constraint')
         self.declare_parameter('radius_setp')
         self.declare_parameter('distance_rovs')
@@ -47,7 +47,7 @@ class BluerovPubSubNode(Node):
 
         # Extract and store parameters value
         self.main_id = self.get_parameter('main_id').get_parameter_value().integer_value
-        self.fleet_quantity = self.get_parameter('fleet_quantity').get_parameter_value().integer_value
+        self.n_multi_agent = self.get_parameter('n_multi_agent').get_parameter_value().integer_value
         self.FOV_constraint = self.get_parameter('FOV_constraint').get_parameter_value().bool_value
         self.radius_setp = self.get_parameter('radius_setp').get_parameter_value().double_value
         self.distance_rovs = self.get_parameter('distance_rovs').get_parameter_value().double_value
@@ -78,7 +78,7 @@ class BluerovPubSubNode(Node):
         # Initialize the MPC
         self.modelRov = MyROVModel()
         self.mpc1 = MyController(self.modelRov,                             # MPC-controller parameters
-                                n_multi_agent=self.fleet_quantity,
+                                n_multi_agent=self.n_multi_agent,
                                 radius_setp=self.radius_setp,               #Radius setpoint
                                 distance_rovs=self.distance_rovs,           # Distance between ROVs
                                 FOV_range_deg=self.FOV_range_deg,           # Hard constraint Field of View
@@ -177,26 +177,26 @@ class BluerovPubSubNode(Node):
             10)
 
        
-        multi_agent_id = [i for i in range(2,(self.fleet_quantity+2))] #List of ROV IDs
+        multi_agent_id = [i for i in range(2,(self.n_multi_agent+2))] #List of ROV IDs
         multi_agent_id.pop(self.main_id - 2) #Remove the main ROV ID from the list
 
          # Subscribing to the odometry to the other ROVs in the fleet
-        if(self.fleet_quantity > 1): 
+        if(self.n_multi_agent > 1): 
             self.odometry_2_subscriber = self.create_subscription(  
                 Odometry, # Message type
                 "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(
-                    multi_agent_id[self.main_id-self.fleet_quantity-1]), # Topic
+                    multi_agent_id[self.main_id-self.n_multi_agent-1]), # Topic
                 self.odometry_callback_2, # Callback function
                 10)
                 
-            self.sec_rov = multi_agent_id[self.main_id-self.fleet_quantity-1]  ## TO BE REMOVED AT A LATER STAGE
-            multi_agent_id.pop(self.main_id-self.fleet_quantity-1)
+            self.sec_rov = multi_agent_id[self.main_id-self.n_multi_agent-1]  ## TO BE REMOVED AT A LATER STAGE
+            multi_agent_id.pop(self.main_id-self.n_multi_agent-1)
             self.angle_publisher = self.create_publisher( ## TO BE REMOVED AT A LATER STAGE
                 Float64, # Message type
                 'angle/from_{}_to_{}'.format(self.main_id, self.sec_rov), # Topic
                 10) 
             
-        if(self.fleet_quantity > 2):
+        if(self.n_multi_agent > 2):
             self.odometry_3_subscriber = self.create_subscription( 
                 Odometry, # Message type
                 "/bluerov2_pid/bluerov{}/observer/nlo/odom_ned".format(multi_agent_id[0]), # Topic
@@ -269,7 +269,7 @@ class BluerovPubSubNode(Node):
 
         # CALCULATIING THE QUATERNION REFERENCES (Maybe move)
         if(self.ready_signal_mpc):
-            if(self.FOV_constraint and self.fleet_quantity):
+            if(self.FOV_constraint and self.n_multi_agent):
                 comparison_vector = [self.mpc1.x_2, self.mpc1.y_2, self.mpc1.z_2]
             else:
                 comparison_vector = [float(msg.x), float(msg.y), float(msg.z)]

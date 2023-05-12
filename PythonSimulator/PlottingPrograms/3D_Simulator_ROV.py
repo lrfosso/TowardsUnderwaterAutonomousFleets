@@ -1,5 +1,6 @@
 
-"""_________________________________________________________________________________________________
+"""
+____________________________________________________________________________________________________
 THIS IS A SIMULATOR FOR 3D PLOTTING OF POSITIONAL DATA OF TWO ROV's
 ____________________________________________________________________________________________________
 The simulator plots the position of the ROV in 3D space and the orientation of the ROV as a vector.
@@ -13,7 +14,8 @@ References:
 https://stackoverflow.com/questions/55169099/animating-a-3d-vector-with-matplotlib
 https://matplotlib.org/stable/gallery/animation/random_walk.html
 https://coderslegacy.com/python/save-animations-in-matplotlib/
-_________________________________________________________________________________________________"""
+_________________________________________________________________________________________________
+"""
 
 import numpy as np
 from matplotlib import pyplot as plt
