@@ -8,4 +8,6 @@ The Python toolbox [do-mpc](https://www.do-mpc.com/en/latest/) was used for the 
 Contains the code made by the group connected to the Gazebo simulator.
 #### Python simulator(Do-mpc simulator)
 Contains the code made by the group connected to the do-mpc simulator.
-#### dataresultater
+#### dataresultat
+Contains the results form the simulation tests conducted during the project.
+#### double agent
