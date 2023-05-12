@@ -1,3 +1,5 @@
+#### File for the controller implementation in do-mpc ####
+### This files contains only the controller class, and is imported to another file, that contains the node ###
 import do_mpc
 import numpy as np
 
@@ -124,40 +126,46 @@ class MyController():
                 u_7 = 0.1,
                 u_8 = 0.1
                 )
-        self.mpc.set_objective(mterm=mterm,lterm=lterm)
-
+        self.mpc.set_objective(mterm=mterm,lterm=lterm) #Sets the cost function
+        #Penalty terms for the distance and FOV
         #                        2   3  
         penalty_term_distance = [70, 500]
         penalty_term_FOV =      [70, 220]
+        # Match non-linear constraints to number of ROVs 
         if(n_multi_agent>1):
+            # Distance between ROVs, soft constraint
             self.mpc.set_nl_cons("Distance2", 
                 (distance_rovs**2-((_tvp_rov1['x_2']-_x_rov1['x'])**2+(_tvp_rov1['y_2']-_x_rov1['y'])**2+(_tvp_rov1['z_2']-_x_rov1['z'])**2)), 
                 ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2], maximum_violation=((distance_rovs*0.9)**2))
             if(FOV_constraint):
-                self.mpc.set_nl_cons("FOV1",
+                #Soft constraint FOV
+                self.mpc.set_nl_cons("FOV1", 
                     (np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
                     +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
                     +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
                     , ub=0, soft_constraint=True, penalty_term_cons=penalty_term_FOV[n_multi_agent-2]
                     )
-                self.mpc.set_nl_cons("FOV1_hard",
+                #FOV hard constraint
+                self.mpc.set_nl_cons("FOV1_hard", 
                     (np.cos((FOV_range_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_2']-_x_rov1['x'])
                     +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_2']-_x_rov1['y'])
                     +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_2']-_x_rov1['z'])))
                     , ub=0, soft_constraint=False
                     )
-                ## Legge til hard cons?
-        if(n_multi_agent>2):
+        if(n_multi_agent>2): # more than two ROVs
+            #Distance contraint
             self.mpc.set_nl_cons("Distance3", 
                 (distance_rovs**2-((_tvp_rov1['x_3']-_x_rov1['x'])**2+(_tvp_rov1['y_3']-_x_rov1['y'])**2+(_tvp_rov1['z_3']-_x_rov1['z'])**2)), 
                 ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2])
             if(FOV_constraint):
+                #Soft FOV constraint
                 self.mpc.set_nl_cons("FOV2",
                     (np.cos((FOV_range_soft_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_3']-_x_rov1['x'])
                     +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_3']-_x_rov1['y'])
                     +(2*_x_rov1['e_1']*_x_rov1['e_3']-2*_x_rov1['e_2']*_x_rov1['q_0'])*(_tvp_rov1['z_3']-_x_rov1['z'])))
                     , ub=0, soft_constraint=True, penalty_term_cons=penalty_term_FOV[n_multi_agent-2]
                     )
+                #Hard FOV constraint
                 self.mpc.set_nl_cons("FOV2_hard",
                     (np.cos((FOV_range_deg/180)*3.14)*distance_rovs-((1-(2*_x_rov1['e_2']**2+2*_x_rov1['e_3']**2))*(_tvp_rov1['x_3']-_x_rov1['x'])
                     +(2*_x_rov1['e_1']*_x_rov1['e_2']+2*_x_rov1['e_3']*_x_rov1['q_0'])*(_tvp_rov1['y_3']-_x_rov1['y'])
@@ -198,7 +206,7 @@ class MyController():
 #                    , ub=0, soft_constraint=True, penalty_term_cons=penalty_term_distance[n_multi_agent-2]
 #                    )
   
-        # Boundary constraints
+        # Boundary constraints, set to -10 and + 10
         self.mpc.bounds['lower', '_u', 'u_1'] = - 10
         self.mpc.bounds['lower', '_u', 'u_2'] = - 10
         self.mpc.bounds['lower', '_u', 'u_3'] = - 10
