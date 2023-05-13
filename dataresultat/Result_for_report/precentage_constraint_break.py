@@ -7,7 +7,10 @@ import os
 
 #----------------------------Settings----------------------------#
 
-folder = "ideal/ideal"
+folder = "mass_2x"
+
+max_angle = 45
+min_dist = 1
 
 #----------------------------------------------------------------#
 
@@ -61,14 +64,14 @@ bad_circle_FOV = 0
 n_circle_Dist = 0
 bad_circle_Dist = 0
 for df in df_circle:
-    if(max(df['angle2']) >= 60):
+    if(max(df['angle2']) >= max_angle):
         bad_circle_FOV += 1
     n_circle_FOV += 1
 
     distance = []
     for i in range(len(df['x'])):
         distance.append(np.sqrt((df['x'][i]-df['real_x2'][i])**2+(df['y'][i]-df['real_y2'][i])**2+(df['z'][i]-df['real_z2'][i])**2))
-    if(min(distance) <= 1):
+    if(min(distance) <= min_dist):
         bad_circle_Dist += 1
     n_circle_Dist += 1
 
@@ -83,14 +86,14 @@ n_torus_Dist = 0
 bad_torus_Dist = 0
 for i, df in enumerate(df_torus):
     #print(df_test[i])
-    if(max(df['angle2']) >= 60.0):
+    if(max(df['angle2']) >= max_angle):
         bad_torus_FOV += 1
     n_torus_FOV += 1
 
     distance = []
     for i in range(len(df['x'])):
         distance.append(np.sqrt((df['x'][i]-df['real_x2'][i])**2+(df['y'][i]-df['real_y2'][i])**2+(df['z'][i]-df['real_z2'][i])**2))
-    if(min(distance) <= 1):
+    if(min(distance) <= min_dist):
         bad_torus_Dist += 1
     n_torus_Dist += 1
 
@@ -105,14 +108,14 @@ bad_line_FOV = 0
 n_line_Dist = 0
 bad_line_Dist = 0
 for df in df_line:
-    if(max(df['angle2']) >= 60):
+    if(max(df['angle2']) >= max_angle):
         bad_line_FOV += 1
     n_line_FOV += 1
 
     distance = []
     for i in range(len(df['x'])):
         distance.append(np.sqrt((df['x'][i]-df['real_x2'][i])**2+(df['y'][i]-df['real_y2'][i])**2+(df['z'][i]-df['real_z2'][i])**2))
-    if(min(distance) <= 1):
+    if(min(distance) <= min_dist):
         bad_line_Dist += 1
     n_line_Dist += 1
 
@@ -127,14 +130,14 @@ bad_spiral_FOV = 0
 n_spiral_Dist = 0
 bad_spiral_Dist = 0
 for df in df_spiral:
-    if(max(df['angle2']) >= 60):
+    if(max(df['angle2']) >= max_angle):
         bad_spiral_FOV += 1
     n_spiral_FOV += 1
 
     distance = []
     for i in range(len(df['x'])):
         distance.append(np.sqrt((df['x'][i]-df['real_x2'][i])**2+(df['y'][i]-df['real_y2'][i])**2+(df['z'][i]-df['real_z2'][i])**2))
-    if(min(distance) <= 1):
+    if(min(distance) <= min_dist):
         bad_spiral_Dist += 1
     n_spiral_Dist += 1
 
