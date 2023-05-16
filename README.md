@@ -40,7 +40,7 @@ Steps to run this simulator from terminal:
 
 5. Source install in two terminals: **source install/setup.bash** 
 
-6.  Run command in one terminal: **ros2 launch mpc_controller multi.py (sjakk denne)**
+6.  Run command in one terminal: **ros2 launch mpc_controller multi_mpc_launch.py (sjekk denne)**
 
 7. Run command in the other terminal: **ros2 launch bluerov_launch bluerov_launch.py**
 
@@ -50,7 +50,7 @@ Gazebo Garden and a GUI should have launched at this point. Start the simulation
 
 Contains the code made by the group connected to the do-mpc simulator.
 To run this simulator only [do-mpc](https://www.do-mpc.com/en/latest/) is required:
-1. Run command: **python3 rovSimulator.py**
+1. Run command: **python3 rovSimulator.py** (må legge til alt her)
 
 #### dataresultat
 
