@@ -4,6 +4,8 @@
 
 This is the repository connected to a Bachelors thesis from NTNU in 2023. It contasins the code for implementation of a decentralized model predictive control architecture to be implemented in a set of [BlueROV2 Heavys](https://bluerobotics.com/store/rov/bluerov2-upgrade-kits/brov2-heavy-retrofit/).
 
+The Python toolbox [do-mpc](https://www.do-mpc.com/en/latest/) was used for the MPC controller.
+
 ### REQUIREMENTS
 
 To be able to run all code in this repository these programs are needed:
@@ -32,15 +34,15 @@ Steps to run this simulator from terminal:
 
 2. Source ROS 2 install: **source /opt/ros/humble/setup.bash**
 
-3. Build worspace: **colcon build**
+3. Navigate to the [params.yaml](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/blob/main/GazeboSimulator/mpc_controller/params/params.yaml) file and set **n_multi_agent** parameter to the amount of agent you wish to spawn into the simulator.
 
-4. Source install: **source install/setup.bash**
+4. Build worspace: **colcon build**
 
-5. Navigate to the [params.yaml](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/blob/main/GazeboSimulator/mpc_controller/params/params.yaml) file and set **n_multi_agent** parameter to the amount of agent you wish to spawn into the simulator.
+5. Source install in two terminals: **source install/setup.bash** 
 
-6.  Run command: **python3 mpc_controller.py**
+6.  Run command in one terminal: **ros2 launch mpc_controller multi.py (sjakk denne)**
 
-7. Run command: **ros2 launch bluerov_launch bluerov_launch.py**
+7. Run command in the other terminal: **ros2 launch bluerov_launch bluerov_launch.py**
 
 Gazebo Garden and a GUI should have launched at this point. Start the simulation in Gazebo Garden with the play button in the lower left corner.
 
@@ -49,11 +51,6 @@ Gazebo Garden and a GUI should have launched at this point. Start the simulation
 Contains the code made by the group connected to the do-mpc simulator.
 To run this simulator only [do-mpc](https://www.do-mpc.com/en/latest/) is required:
 1. Run command: **python3 rovSimulator.py**
-
-#### dataresultat
-
-Contains the results from the simulation tests conducted during the project.
-
 
 #### dataresultat
 
