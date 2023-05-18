@@ -7,17 +7,17 @@ import os
 
 #----------------------------Settings----------------------------#
 
-folder = "mass_2x"
+folder = "default_school_computer"
 
-max_angle = 45
-min_dist = 1
+max_angle = 60
+min_dist = 0.75
 
 #----------------------------------------------------------------#
 
 files = os.listdir(folder)
 
 for i, file in enumerate(files):
-    if (("rov2" in file) and (".csv" in file)):
+    if ((".csv" in file)):
         pass
     else:
         files[i] = ''
@@ -29,13 +29,13 @@ line = []
 spiral = []
 
 for i, file in enumerate(files):
-    if (("circle" in file) and (".csv" in file)):
+    if (("circle" in file[40:]) and (".csv" in file)):
         circle.append(file)
-    elif (("torus" in file) and (".csv" in file)):
+    elif (("torus" in file[40:]) and (".csv" in file)):
         torus.append(file)
-    elif (("line" in file) and (".csv" in file)):
+    elif (("line" in file[40:]) and (".csv" in file)):
         line.append(file)
-    elif (("spiral" in file) and (".csv" in file)):
+    elif (("spiral" in file[40:]) and (".csv" in file)):
         spiral.append(file)
     else:
         pass
@@ -57,6 +57,8 @@ for file in line:
 
 for file in spiral:
     df_spiral.append(pd.read_csv(folder+"/"+file))
+
+print(len(df_line), len(df_spiral), len(df_circle), len(df_torus))
 
 print("Circle:-------------------------------------------------")
 n_circle_FOV = 0
@@ -100,6 +102,7 @@ for i, df in enumerate(df_torus):
 
 print("FOV: \t", round((bad_torus_FOV/n_torus_FOV)*100,2))
 print("Dist: \t", round((bad_torus_Dist/n_torus_Dist)*100,2))
+
 
 
 print("Line:-------------------------------------------------")
