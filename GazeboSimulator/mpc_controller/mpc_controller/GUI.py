@@ -116,9 +116,9 @@ class GUI(Node):
         self.size = (int(w*dpi), int(h*dpi))
         self.ax.grid(True)
         self.ax.set(xlim=(-10, 10), ylim=(-10, 10))
-        self.ax.set_title('Birds eye view of sea', fontdict={'fontsize': 20})
-        self.ax.set_xlabel('y', fontdict={'fontsize': 15})
-        self.ax.set_ylabel('x', fontdict={'fontsize': 15})
+        self.ax.set_title("Bird's-eye view", fontdict={'fontsize': 20})
+        self.ax.set_xlabel('Y', fontdict={'fontsize': 15})
+        self.ax.set_ylabel('X', fontdict={'fontsize': 15})
         self.ax.set_facecolor("blue")
 
         ###### INIT PYSIMPLEGUI ######################################################################
@@ -154,13 +154,13 @@ class GUI(Node):
 
         self.std_test_ready_next = True
         self.cooldown_start_std_test = False
-        self.standard_test_num = 1
+        self.standard_test_num = 2
         self.init_next_test = True
         self.sequence_test = False
         self.start_cooldown = time.time()
         self.wave_direction = True
         self.waves_active = False
-        self.std_test_nr = 0
+        self.std_test_nr = 84
 
         # Ensuring that the ocean current is set to zero
         os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 0, y:0, z:0'")
@@ -208,20 +208,20 @@ class GUI(Node):
             self.cooldown_start_std_test = False
             self.init_next_test = False
 
-        # RUNNING WAVES
-        if(self.sequence_test and self.waves_active):
-            wave_size = 0.5
-            wave_timer = time.time()
-            if(wave_timer > self.wave_period_timer + 1):
-                self.wave_direction = not self.wave_direction
-                os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: {}, y:0, z:{}'".format(wave_size ,wave_size if self.wave_direction else -wave_size))
-                self.get_logger().info("Switching waves")
-                self.wave_period_timer = time.time()
-        else:
-            self.wave_period_timer = time.time()
+        ## RUNNING WAVES
+        #if(self.sequence_test and self.waves_active):
+        #    wave_size = 0.5
+        #    wave_timer = time.time()
+        #    if(wave_timer > self.wave_period_timer + 1):
+        #        self.wave_direction = not self.wave_direction
+        #        os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: {}, y:0, z:{}'".format(wave_size ,wave_size if self.wave_direction else -wave_size))
+        #        self.get_logger().info("Switching waves")
+        #        self.wave_period_timer = time.time()
+        #else:
+        #    self.wave_period_timer = time.time()
 
         # SETTING UP AND RUNNING STANDARD TEST SEQUENCE
-        test_name = "ocean_current_{}_".format(self.std_test_nr)
+        test_name = "circle_setp_{}_".format(self.std_test_nr)
         standard_test = [test_name+"circle", test_name+"torus", test_name+"line", test_name+"spiral"]
 
         if (self.std_test_ready_next and self.sequence_test):
@@ -234,7 +234,8 @@ class GUI(Node):
                     self.standard_test_num += 1
                 self.init_next_test = False
                 self.waves_active = False
-
+            test_name = "circle_setp_{}_".format(self.std_test_nr)
+            standard_test = [test_name+"circle", test_name+"torus", test_name+"line", test_name+"spiral"]
             self.filename = String()
             self.filename.data = standard_test[self.standard_test_num - 1]
             self.window['-FILENAME-'].update(self.filename.data)
@@ -242,7 +243,7 @@ class GUI(Node):
             self.record.data = False
             self.publisher_record.publish(self.record)
             self.window['-RECORD-'].update(text="Start")
-            os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 0, y:0, z:0'")
+            #os.system("gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 0, y:0, z:0'") # USED WHEN RUNNING WAVES
 
             cooldown_timer = time.time()
             length1 = np.sqrt((self.odom1.x)**2+(self.odom1.y)**2+(5-self.odom1.z)**2)
@@ -322,7 +323,7 @@ class GUI(Node):
             self.trajectory_log_1[1].append(self.odom1.y)
         else:
             self.trajectory_log_1 = [[],[]]
-        self.ax.scatter(self.odom1.y, self.odom1.x, c='blue', s=40, label='ROV 1')
+        self.ax.scatter(self.odom1.y, self.odom1.x, c='blue', s=40, label='ROV 2')
         self.ax.plot(self.trajectory_log_1[1], self.trajectory_log_1[0], c='blue')
         # Update the canvas with ROV2
         if self.n_multi_agent > 1:
@@ -334,7 +335,7 @@ class GUI(Node):
                 self.trajectory_log_2[1].append(self.pos2[1])
             else:
                 self.trajectory_log_2 = [[],[]]
-            self.ax.scatter(self.pos2[1], self.pos2[0], c='green', s=40, label='ROV 2')
+            self.ax.scatter(self.pos2[1], self.pos2[0], c='green', s=40, label='ROV 3')
             self.ax.plot(self.trajectory_log_2[1], self.trajectory_log_2[0], c='green')
         # Update the canvas with ROV3
         if self.n_multi_agent > 2:
@@ -346,7 +347,7 @@ class GUI(Node):
                 self.trajectory_log_3[1].append(self.pos3[1])
             else:
                 self.trajectory_log_3 = [[],[]]
-            self.ax.scatter(self.pos3[1], self.pos3[0], c='red', s=40, label='ROV 3')
+            self.ax.scatter(self.pos3[1], self.pos3[0], c='red', s=40, label='ROV 4')
             self.ax.plot(self.trajectory_log_3[1], self.trajectory_log_3[0], c='red')
         # Update the canvas with the new plot
         self.update_xyz_GUI_indication()
@@ -373,8 +374,8 @@ class GUI(Node):
         self.ax.grid(True)
         self.ax.set(xlim=(-20, 20), ylim=(-20, 20))
         self.ax.set_title("Bird's-eye view", fontdict={'fontsize': 20})
-        self.ax.set_xlabel('y', fontdict={'fontsize': 15})
-        self.ax.set_ylabel('x', fontdict={'fontsize': 15})
+        self.ax.set_xlabel('Y', fontdict={'fontsize': 15})
+        self.ax.set_ylabel('X', fontdict={'fontsize': 15})
         self.ax.set_facecolor((0.1,0.9,1))
 
     def setup_layout(self):
@@ -405,37 +406,48 @@ class GUI(Node):
             [sg.Radio('Autonomous (Trajectory planning)', "Control_mode", key='-TRAJECTORY-', text_color="black", font=font, background_color=button_col, default=False, size=(50, 1))],
             [sg.Radio('Standard test                   ', "Control_mode", key='-STANDARD_TEST-',text_color="black", font=font, background_color=button_col, default=True, size=(50, 1))],
             [sg.Text('', background_color=background_col)],
-            [sg.Text('Position waypoint', size=(50, 1), justification='center', font=(font, 12, "bold"),text_color=text_col, background_color=unclickable_col)],
+            [sg.Text('',font=font, size=(5, 1),text_color=text_col, background_color=background_col), 
+            sg.Text('Position waypoint', size=(22, 1), justification='center', font=(font, 12, "bold"),text_color=text_col, background_color=unclickable_col),
+            sg.Text('Ocean current', size=(22, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col)],
             [sg.Text('X:',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
-            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-X-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
-            sg.Text('-20 < X < 20',font=font, size=(10, 1),text_color=text_col, background_color=background_col),
+            sg.InputText(size=(22, 1), pad=((10, 0), 3), font=font, key='-X-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
+            #sg.Text('', size=(1,1), background_color=background_col),
+            sg.InputText('0', size=(22, 1), justification='center', font=font, key='-CUR_X-',text_color=clickable_text_col, background_color=clickable_backgr_col),
             ],
             [sg.Text('Y:',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
-            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-Y-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
-            sg.Text('-20 < Y < 20',font=font, size=(10, 1),text_color=text_col, background_color=background_col),
+            sg.InputText(size=(22, 1), pad=((10, 0), 3), font=font, key='-Y-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
+            sg.InputText('0', size=(22, 1), justification='center', font=font, key='-CUR_Y-',text_color=clickable_text_col, background_color=clickable_backgr_col),
             ],
             [sg.Text('Z:',font=font, size=(4, 1),text_color=text_col, background_color=unclickable_col), 
-            sg.InputText(size=(34, 1), pad=((10, 0), 3), font=font, key='-Z-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
-            sg.Text('   0 < Z < 15',font=font, size=(10, 1),text_color=text_col, background_color=background_col),],
-            [sg.Button('Set position', size=(38, 1), font=font, key='-SET_P-', button_color=('black',button_col))],
+            sg.InputText(size=(22, 1), pad=((10, 0), 3), font=font, key='-Z-',text_color=clickable_text_col, background_color=clickable_backgr_col, default_text='0'),
+            sg.InputText('0', size=(22, 1), justification='center', font=font, key='-CUR_Z-',text_color=clickable_text_col, background_color=clickable_backgr_col),
+            ],
+            [sg.Text('',font=font, size=(5, 1),text_color=text_col, background_color=background_col), 
+            sg.Button('Set position', size=(19, 1), font=font, key='-SET_P-', button_color=('black',button_col)),
+            sg.Button('Set current', size=(19, 1), font=font, key='-SET_CUR-', button_color=('black', button_col)),
+            ],
+            [sg.Text('', size=(36,1),background_color=background_col),
+            sg.Button('Reset ocean current', size=(19, 1), font=font, key='-RESET_CUR-', button_color=('black', button_col)),
+            ],
             [sg.Text('', background_color=background_col)],
             [sg.Text('Standard test', size=(50, 1), justification='center', font=(font, 12, "bold"),text_color=text_col, background_color=unclickable_col)],
-            [sg.Button('Circle', size=(20, 1), font=font, key='-STD_TEST_1-', button_color=('black', button_col)),
-            sg.Button('Torus', size=(20, 1), font=font, key='-STD_TEST_2-', button_color=('black', button_col))],
-            [sg.Button('Line', size=(20, 1), font=font, key='-STD_TEST_3-', button_color=('black', button_col)),
-            sg.Button('Spiral', size=(20, 1), font=font, key='-STD_TEST_4-', button_color=('black', button_col))],
+            [sg.Button('Circle [1]', size=(20, 1), font=font, key='-STD_TEST_1-', button_color=('black', button_col)),
+            sg.Button('Torus [2]', size=(20, 1), font=font, key='-STD_TEST_2-', button_color=('black', button_col))],
+            [sg.Button('Line [3]', size=(20, 1), font=font, key='-STD_TEST_3-', button_color=('black', button_col)),
+            sg.Button('Spiral [4]', size=(20, 1), font=font, key='-STD_TEST_4-', button_color=('black', button_col))],
             [sg.Button('Initialize position', size=(20, 1), font=font, key='-INITIALIZE-', button_color=('black', button_col)),
             sg.Button('Test sequence', size=(20, 1), font=font, key='-STD_TEST_SEQUENCE-', button_color=('black', button_col))],
             [sg.Text('', background_color=background_col)],
             [sg.Text('O', background_color=background_col, size=(5, 1), text_color=background_col, justification='center', font=font),
-            sg.Text('ROV1', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
-            sg.Text('ROV2', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_multi_agent > 1 else sg.Text('',size=(0,0), background_color=background_col),
-            sg.Text('ROV3', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_multi_agent > 2 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Text('ROV2', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
+            sg.Text('ROV3', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_multi_agent > 1 else sg.Text('',size=(0,0), background_color=background_col),
+            sg.Text('ROV4', size=(ROV_col_width, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_multi_agent > 2 else sg.Text('',size=(0,0), background_color=background_col),
             ],
             [sg.Text('X', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
             sg.Text('X', size=(ROV_col_width, 1), justification='center', font=font, key='-X_visual-',text_color=text_col, background_color=ind_text_col),
             sg.Text('X', size=(ROV_col_width, 1), justification='center', font=font, key='-X_visual2-',text_color=text_col, background_color=ind_text_col) if self.n_multi_agent > 1 else sg.Text('',size=(0,0), background_color=background_col),
             sg.Text('X', size=(ROV_col_width, 1), justification='center', font=font, key='-X_visual3-',text_color=text_col, background_color=ind_text_col) if self.n_multi_agent > 2 else sg.Text('',size=(0,0), background_color=background_col),
+            
             ],
             [sg.Text('Y', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
             sg.Text('Y', size=(ROV_col_width, 1), justification='center', font=font, key='-Y_visual-',text_color=text_col, background_color=ind_text_col),
@@ -465,18 +477,10 @@ class GUI(Node):
             ]
         self.sec_col = [
             [sg.Canvas(size=self.size, key='-CANVAS-', background_color='white')],
-            [sg.Text('Ocean current:', size=(15, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
-            sg.Text('', size=(40, 1), justification='center', font=font,text_color="white", background_color='white'),
+            [
             sg.Text('FOV:', size=(15, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
             ],
-            [sg.Text('X', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
-            sg.InputText('0', size=(5, 1), justification='center', font=font, key='-CUR_X-',text_color=text_col, background_color=ind_text_col),
-            sg.Text('Y', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
-            sg.InputText('0', size=(5, 1), justification='center', font=font, key='-CUR_Y-',text_color=text_col, background_color=ind_text_col),
-            sg.Text('Z', size=(5, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col),
-            sg.InputText('0', size=(5, 1), justification='center', font=font, key='-CUR_Z-',text_color=text_col, background_color=ind_text_col),
-            sg.Button('Set', size=(10, 1), font=font, key='-SET_CUR-', button_color=('black', button_col)),
-            sg.Text('', size=(4, 1), background_color="white"),
+            [
             sg.Text('2 to 3:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_multi_agent > 1 else sg.Text('',size=(0,0), background_color="white"),
             sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_23-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_multi_agent > 1 else sg.Text('',size=(0,0), background_color="white"),
             sg.Text('3 to 2:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_multi_agent > 1 else sg.Text('',size=(0,0), background_color="white"),
@@ -484,8 +488,7 @@ class GUI(Node):
             sg.Text('4 to 2:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_multi_agent > 2 else sg.Text('',size=(0,0), background_color="white"),
             sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_42-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_multi_agent > 2 else sg.Text('',size=(0,0), background_color="white"),
             ],
-            [sg.Button('Reset ocean current', size=(15, 1), font=font, key='-RESET_CUR-', button_color=('black', button_col)),
-            sg.Text('', size=(48, 1), background_color="white"),
+            [
             sg.Text('2 to 4:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_multi_agent > 2 else sg.Text('',size=(0,0), background_color="white"),
             sg.Text('??',size=(5, 1), justification='center', key='-ANGLE_24-',font=font,text_color=text_col, background_color=ind_text_col) if self.n_multi_agent > 2 else sg.Text('',size=(0,0), background_color="white"),
             sg.Text('3 to 4:', size=(7, 1), justification='center', font=font,text_color=text_col, background_color=unclickable_col) if self.n_multi_agent > 2 else sg.Text('',size=(0,0), background_color="white"),
@@ -519,7 +522,7 @@ class GUI(Node):
         ## Settnig the limits for the waypoint coordinates
 
         if(invalid):
-            sg.popup('Please enter a valid number for the waypoint coordinates!',background_color="yellow", text_color="black", font="Helvetica 14", title="Warning")
+            sg.popup('Please enter a valid number for the waypoint coordinates!\n\nLimits:\nX: Min: -20\tMax: 20\nY: Min: -20\tMax: 20\n  Z: Min: 0\tMax: 15',background_color="yellow", text_color="black", font="Helvetica 14", title="Warning")
         else:
             waypoint = Vector3()
             waypoint.x = float(self.values['-X-'])
