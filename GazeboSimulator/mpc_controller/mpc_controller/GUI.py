@@ -117,8 +117,8 @@ class GUI(Node):
         self.ax.grid(True)
         self.ax.set(xlim=(-10, 10), ylim=(-10, 10))
         self.ax.set_title("Bird's-eye view", fontdict={'fontsize': 20})
-        self.ax.set_xlabel('Y', fontdict={'fontsize': 15})
-        self.ax.set_ylabel('X', fontdict={'fontsize': 15})
+        self.ax.set_xlabel('y', fontdict={'fontsize': 15})
+        self.ax.set_ylabel('x', fontdict={'fontsize': 15})
         self.ax.set_facecolor("blue")
 
         ###### INIT PYSIMPLEGUI ######################################################################
@@ -374,8 +374,8 @@ class GUI(Node):
         self.ax.grid(True)
         self.ax.set(xlim=(-20, 20), ylim=(-20, 20))
         self.ax.set_title("Bird's-eye view", fontdict={'fontsize': 20})
-        self.ax.set_xlabel('Y', fontdict={'fontsize': 15})
-        self.ax.set_ylabel('X', fontdict={'fontsize': 15})
+        self.ax.set_xlabel('y', fontdict={'fontsize': 15})
+        self.ax.set_ylabel('x', fontdict={'fontsize': 15})
         self.ax.set_facecolor((0.1,0.9,1))
 
     def setup_layout(self):
