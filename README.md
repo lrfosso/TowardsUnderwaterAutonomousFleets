@@ -18,7 +18,7 @@ To be able to run all code in this repository these programs are needed:
 
 - [do-mpc](https://www.do-mpc.com/en/latest/): Python toolbox used for the MPS controller (for running the Python simulator, only do-mpc is required)
 
--  **BlueROV2 garden** Gazebo workspace (not publicly available)
+-  **bluerov2_garden** Gazebo workspace (not publicly available)
 
 ### CONTENT
 
