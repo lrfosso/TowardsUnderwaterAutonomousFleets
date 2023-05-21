@@ -18,7 +18,7 @@ To be able to run all code in this repository these programs are needed:
 
 - [do-mpc](https://www.do-mpc.com/en/latest/): Python toolbox used for the MPS controller (for running the Python simulator, only do-mpc is required)
 
--  BlueRov2 plugin: Gazebo Garden plugin for ROV simulation model (not publicly available)
+-  **bluerov2_garden** Gazebo workspace (not publicly available)
 
 ### CONTENT
 
@@ -34,24 +34,34 @@ Steps to run this simulator from terminal:
 
 2. Source ROS 2 install: **source /opt/ros/humble/setup.bash**
 
-3. Navigate to the [params.yaml](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/blob/main/GazeboSimulator/mpc_controller/params/params.yaml) file and set **n_multi_agent** parameter to the amount of agent you wish to spawn into the simulator.
+3. Navigate to **/bluerov2_garden/src/mpc_controller/params**  file and set **n_multi_agent** parameter to the amount of agent you wish to spawn into the simulator.
 
-4. Build workspace: **colcon build**
+4. Navigate to the **/bluerov2_garden** 
 
-5. Source install in two terminals: **source install/setup.bash** 
+5. Run the command: **colcon build** to build the workspace
 
-6.  Run command in one terminal: **ros2 launch mpc_controller multi_mpc_launch.py (sjekk denne)**
+6. Source install in two terminals: **source install/setup.bash** 
 
-7. Run command in the other terminal: **ros2 launch bluerov_launch bluerov_launch.py**
+7.  Run command in one terminal: **ros2 launch bluerov_launch bluerov_launch.py**
+
+8. Run command in the another terminal: **ros2 launch mpc_controller multi_mpc_launch.py**
 
 Gazebo Garden and a GUI should have launched at this point. Start the simulation in Gazebo Garden with the play button in the lower left corner.
 
 #### Python simulator(Do-mpc simulator)
 
+
 Contains the code made by the group connected to the do-mpc simulator.
 To run this simulator only [do-mpc](https://www.do-mpc.com/en/latest/) is required:
-1. Run command: **python3 rovSimulator.py** (må legge til alt her)
+1. Navigate to the folder [PythonSimulators](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/)
 
-#### dataresultat
+2. Chose the simulator that you want to run, and navigate to it's directory
+	- [PythonSimulator (Used in results)](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/PythonSimulator)
+	- [CentralizedSimulator](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/CentralizedSimulator)
+	- [QuaternionsSimulator](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/QuaternionsSimulator)
+3. Run command in terminal: **python3 rovSimulator.py** 
+4. To visualize the data run: **python3 3D_Simulator_ROV.py**
 
-Contains the results from the simulation tests conducted during the project.
+#### Data
+
+Contains the data from the testing in the thesis. 
