@@ -36,7 +36,7 @@ Steps to run this simulator from terminal:
 
 3. Navigate to the [params.yaml](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/blob/main/GazeboSimulator/mpc_controller/params/params.yaml) file and set **n_multi_agent** parameter to the amount of agent you wish to spawn into the simulator.
 
-4. Build worspace: **colcon build**
+4. Build workspace: **colcon build**
 
 5. Source install in two terminals: **source install/setup.bash** 
 
