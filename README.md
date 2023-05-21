@@ -49,7 +49,7 @@ Steps to run this simulator from terminal:
 Gazebo Garden and a GUI should have launched at this point. Start the simulation in Gazebo Garden with the play button in the lower left corner.
 
 #### Python simulator(Do-mpc simulator)
-**Only requirement to run Python simulator is [do-mpc](https://www.do-mpc.com/en/latest/)**
+
 
 Contains the code made by the group connected to the do-mpc simulator.
 To run this simulator only [do-mpc](https://www.do-mpc.com/en/latest/) is required:
