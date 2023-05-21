@@ -56,11 +56,11 @@ To run this simulator only [do-mpc](https://www.do-mpc.com/en/latest/) is requir
 1. Navigate to the folder [PythonSimulators](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/)
 
 2. Chose the simulator that you want to run, and navigate to it's directory
-	- [PythonSimulator (Stable, used for results)](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/PythonSimulator)
-	- [CentralizedSimulator (Slow)](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/CentralizedSimulator)
-	- [QuaternionsSimulator (Unstable attitude)](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/QuaternionsSimulator)
+	- [PythonSimulator (Used in results)](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/PythonSimulator)
+	- [CentralizedSimulator](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/CentralizedSimulator)
+	- [QuaternionsSimulator](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets/tree/main/PythonSimulators/QuaternionsSimulator)
 3. Run command in terminal: **python3 rovSimulator.py** 
-4. To visualize the data run: **python3 3D_Simulator_ROV_circle.py**
+4. To visualize the data run: **python3 3D_Simulator_ROV.py**
 
 #### Data
 
