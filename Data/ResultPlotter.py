@@ -1,7 +1,7 @@
 """
 _______________________________________________________________________________
-This file creates a plot for the comparing the median of the different scenarios
-How to use: 1. place the folders with the csvs in folderList
+This file creates a plot the data from csvs.
+How to use: 1. place the the folder of tests inside a folder, change main_dir to this name.
             2. change test df_"test" to circle, torus line or spiral. on line 270 and 272
 _______________________________________________________________________________
 """
