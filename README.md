@@ -24,7 +24,7 @@ To be able to run all code in this repository these programs are needed:
 
 #### Gazebo simulator
 
-Contains the code made by the group connected to the Gazebo simulator.
+Contains the packages made by the group connected to the Gazebo simulator.
 
 To run this simulator all [REQUIREMENTS](https://github.com/lrfosso/TowardsUnderwaterAutonomousFleets#requirements) must be installed.
 
